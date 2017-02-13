@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Notable.ink</title>
+		<link rel="stylesheet" href="../node_modules/simplemde/dist/simplemde.min.css">
+		<link rel="stylesheet" href="./style.css">
+		<link rel="stylesheet" href="../node_modules/material-icons/css/material-icons.css">
+		<!-- TODO: get this offline -->
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+		<link rel="stylesheet" href="../node_modules/vex-js/dist/css/vex.css" />
+		<link rel="stylesheet" href="../node_modules/vex-js/dist/css/vex-theme-os.css" />
+	</head>
+	<body>
+		<div class="contents">
+			<div class="header bordered">
+				<div class="left-header">
+					<div class="logo">
+						<img src="img/logo.png" width="30" height="30">
+					</div>
+					<div class="login-wrapper">
+						<div class="login no-drag" @click="pop('This feature is coming soon :)')">
+							<i class="icon material-icons">account_circle</i>
+							<span> LOGIN</span>
+						</div>
+					</div>
+				</div>
+				<div class="right-header">
+					<wbuttons :remote="remote"></wbuttons>
+				</div>
+			</div>
+
+			<div class="containers-body">
+				<div class="sidebar" >
+					<section class="sidebar-header">
+						<input type="text" name="folder_name" v-model="search" placeholder="Search for note" autocomplete="off" />
+					</section>
+					<section class="sidebar-containers" >
+						<div class="folders_and_files">
+							<project-explorer 
+								v-if="path" 
+								:path="'./notes'"
+								:document="document"
+								:shell="shell"
+								:acceptedfiles="acceptedfiles"
+								:search="search"
+								v-on:openFile="openFile"
+							></project-explorer>
+						</div>
+					</section>
+					<section class="sidebar-buttons" >
+						<span class="btn-sidebar btn-terminal" @click="visit('https://notable.ink')">
+							<i class="icon material-icons">link</i>
+							<span class="text" >Notable.ink</span>
+						</span>
+						<span class="btn-sidebar btn-feedback">
+							<i class="icon material-icons">settings</i>
+						</span>
+						<scrnsht
+							:document="document"
+							:remote="remote"
+							:BrowserWindow="BrowserWindow"
+						></scrnsht>
+					</section>
+				</div>
+
+				<div class="details">
+					<div class="header-section">
+						<div class="text">
+							<span>{{ openedFile }}</span>
+							<span class="status stopped" v-show="unsaved">UNSAVED</span>
+						</div>
+					</div>
+					<div class="details-panel">
+						<div class="editor_holder">
+							<textarea id="editor"></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+	</body>
+	<script type="text/javascript">var nodeRequire = require</script>
+	<script src="../renderer.js"></script>
+</html>

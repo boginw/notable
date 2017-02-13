@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Notable.ink - Cropper</title>
+		<link rel="stylesheet" href="../node_modules/cropperjs/dist/cropper.css" />
+		<style>
+			*{
+				margin: 0px;
+				padding: 0px;
+			}
+			body{
+				overflow: hidden;
+				height: 100vh;
+			}
+
+			.cropper-crop-box:after{
+				content:"<button>hello</button>";
+			}
+		</style>
+	</head>
+	<body>
+		<div class="contents">
+			<img id="image">
+		</div>
+	</body>
+	<script type="text/javascript">var nodeRequire = require</script>
+	<script type="text/javascript">
+		const remote = require('electron').remote;
+		var ipcRenderer = require('electron').ipcRenderer;
+		var cropper = require("cropperjs");
+		var image = document.getElementById("image");
+		var sender;
+
+		document.onkeydown = function(evt) {
+		    evt = evt || window.event;
+		    var isEscape = false;
+		    if ("key" in evt) {
+		        isEscape = (evt.key == "Escape" || evt.key == "Esc");
+		    } else {
+		        isEscape = (evt.keyCode == 27);
+		    }
+		    if (isEscape) {
+		        remote.getCurrentWindow().webContents.emit("cropped");
+				remote.getCurrentWindow().close();
+		    }
+		};
+
+		ipcRenderer.on('store-data', function (event,store) {
+			sender = event;
+			image.src = "../notes/"+store;
+			console.log(store);
+			cropImage = ()=>{
+				console.log("cropImage");
+				var dat = cropper.getCroppedCanvas().toDataURL();
+
+				var base64Data = dat.replace(/^data:image\/png;base64,/, "");
+				require("fs").writeFile("notes/"+require("path").basename(image.src), base64Data, 'base64', function(err) {
+					console.log(err);
+					remote.getCurrentWindow().webContents.emit("cropped");
+					remote.getCurrentWindow().close();
+				});
+			}
+
+			var cropper = new Cropper(image, {
+				zoomable: false,
+				ready(){
+					button = document.createElement("button");
+					button.innerHTML = "Crop";
+					button.addEventListener("click",cropImage);
+					document.querySelector(".cropper-crop-box").appendChild(button);
+				},
+				crop(e){
+					console.log(e.detail.x);
+					console.log(e.detail.y);
+					console.log(e.detail.width);
+					console.log(e.detail.height);
+					console.log(e.detail.rotate);
+					console.log(e.detail.scaleX);
+					console.log(e.detail.scaleY);
+				}
+			});
+
+		    console.log(store);
+		});
+	</script>
+</html>

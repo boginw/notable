@@ -1,0 +1,55 @@
+{
+  "name": "notable",
+  "productName": "Notable",
+  "version": "0.0.1",
+  "description": "A minimal markdown application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "buildWin": "electron-packager . --overwrite --asar=true --platform=win32 --arch=ia32 --prune=true --out=release --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Notable\"",
+    "pack:win64": "electron-packager . $npm_package_productName --out=dist/win --platform=win32 --arch=x64 --version=1.5.0 app-version=1.0",
+    "build": "npm run pack:win64"
+  },
+  "build": {
+    "app-bundle-id": "ink.notable",
+    "iconUrl": "app/img/icon.png"
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "boginw",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "babel-plugin-transform-runtime": "^6.22.0",
+    "electron": "^1.4.1",
+    "electron-packager": "^8.5.1",
+    "electron-prebuilt": "^1.4.13",
+    "electron-winstaller": "^2.5.2"
+  },
+  "dependencies": {
+    "aliasify": "^2.1.0",
+    "cropperjs": "^0.8.1",
+    "electron-config": "^0.2.1",
+    "electron-ipc-broadcast": "^0.1.0",
+    "electron-window-state": "^4.0.1",
+    "file": "^0.2.2",
+    "font-awesome": "^4.7.0",
+    "fs": "0.0.1-security",
+    "material-icons": "^0.1.0",
+    "simplemde": "^1.11.2",
+    "vex-js": "^3.1.0",
+    "vue": "^2.1.10",
+    "vue-electron": "^1.0.6",
+    "webpack-target-electron-renderer": "^0.4.0"
+  },
+  "aliasify": {
+    "aliases": {
+      "vue": "vue/dist/vue.js"
+    }
+  }
+}
