@@ -6,9 +6,10 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "buildWin": "electron-packager . --overwrite --asar=true --platform=win32 --arch=ia32 --prune=true --out=release --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Notable\"",
-    "pack:win64": "electron-packager . $npm_package_productName --out=dist/win --platform=win32 --arch=x64 --version=1.5.0 app-version=1.0",
-    "build": "npm run pack:win64"
+    "pack-win": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=win32 --arch=ia32 --icon=app/img/logo.ico --out=out --version-string.CompanyName='Notable.Ink' --version-string.FileDescription='a notable tool for taking notes' --version-string.ProductName='Notable'",
+    "installer": "node ./script/installer.js",
+    "sign-exe": "signcode out/notable-win32-ia32/notable.exe --cert cert.p12 --name 'Notable' --url 'https://notable.ink'",
+    "sign-installer": "signcode ./out/windows-installer/Setup.exe --cert ./cert.p12 --name 'Notable' --url 'https://notable.ink'"
   },
   "build": {
     "app-bundle-id": "ink.notable",
@@ -29,10 +30,12 @@
     "electron": "^1.4.1",
     "electron-packager": "^8.5.1",
     "electron-prebuilt": "^1.4.13",
-    "electron-winstaller": "^2.5.2"
+    "electron-winstaller": "^2.5.2",
+    "signcode": "^0.5.0"
   },
   "dependencies": {
     "aliasify": "^2.1.0",
+    "child_process": "^1.0.2",
     "cropperjs": "^0.8.1",
     "electron-config": "^0.2.1",
     "electron-ipc-broadcast": "^0.1.0",
@@ -41,6 +44,7 @@
     "font-awesome": "^4.7.0",
     "fs": "0.0.1-security",
     "material-icons": "^0.1.0",
+    "rimraf": "^2.5.4",
     "simplemde": "^1.11.2",
     "vex-js": "^3.1.0",
     "vue": "^2.1.10",

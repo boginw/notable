@@ -5,6 +5,7 @@ const globalShortcut = electron.globalShortcut;
 const path = require('path');
 const url = require('url');
 const fs = require("fs");
+const autoUpdater = require('./auto-updater')
 const windowStateKeeper = require('electron-window-state');
 const Config = require('electron-config')
 const config = new Config();
@@ -29,6 +30,7 @@ if(!fs.existsSync(rootDir+'notes/init.md')){
 }
 
 function createWindow () {
+	autoUpdater.initialize();
 	// Load last window state
 	let mainWindowState = windowStateKeeper({
 	    defaultWidth: 1000,
@@ -69,21 +71,41 @@ function createWindow () {
 		mainWindow = null;
 	});
 }
-app.on('ready', createWindow);
 
-// Quit when all windows are closed.
-app.on('window-all-closed', function () {
-	// On OS X it is common for applications and their menu bar
-	// to stay active until the user quits explicitly with Cmd + Q
-	if (process.platform !== 'darwin') {
-		app.quit();
-	}
-});
+function initialize () {
 
-app.on('activate', function () {
-	// On OS X it's common to re-create a window in the app when the
-	// dock icon is clicked and there are no other windows open.
-	if (mainWindow === null) {
-		createWindow();
-	}
-});
+
+	app.on('ready', createWindow);
+
+	// Quit when all windows are closed.
+	app.on('window-all-closed', function () {
+		// On OS X it is common for applications and their menu bar
+		// to stay active until the user quits explicitly with Cmd + Q
+		if (process.platform !== 'darwin') {
+			app.quit();
+		}
+	});
+
+	app.on('activate', function () {
+		// On OS X it's common to re-create a window in the app when the
+		// dock icon is clicked and there are no other windows open.
+		if (mainWindow === null) {
+			createWindow();
+		}
+	});
+}
+
+switch (process.argv[1]) {
+	case '--squirrel-install':
+		autoUpdater.createShortcut(function () { app.quit() })
+		break
+	case '--squirrel-uninstall':
+		autoUpdater.removeShortcut(function () { app.quit() })
+		break
+	case '--squirrel-obsolete':
+	case '--squirrel-updated':
+		app.quit()
+		break
+	default:
+		initialize()
+}

@@ -4,3 +4,9 @@ notes*
 build
 release
 releases
+out
+npm-debug.log
+cert.p12
+cert.pem
+key.pem
+token
