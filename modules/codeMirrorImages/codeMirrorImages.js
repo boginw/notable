@@ -1,4 +1,4 @@
-module.exports = function(document, md){
+module.exports = function(document, md, rootDir){
 	const regex = /!\[(.*)\]\((.*)\)/g;
 	
 	this.widgets = [];
@@ -28,7 +28,7 @@ module.exports = function(document, md){
 			        coverGutter: true
 			    }));
 			    md.codemirror.refresh();
-				container.src = m[2];
+				container.src = m[2].replace("{DIR}",rootDir);
 			}
 		}
 

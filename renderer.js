@@ -10,7 +10,7 @@ const Vue = require('vue/dist/vue.js');
 const file 			  = require('../modules/file/file.js')();
 
 let rootDir = app.getPath('documents')+"/";
-document.__dirname = rootDir+"/"+"notes";
+document.__dirname = __dirname;
 vex.registerPlugin(require('vex-dialog'));
 vex.defaultOptions.className = 'vex-theme-os';
 console.log(rootDir);
@@ -60,6 +60,7 @@ let store = {
 	defaultFile: rootDir+"notes/init.md",
 	saveIntervals: null,
 	shell:shell,
+	rootDir:rootDir,
 	acceptedfiles : [
 		".md"
 	],
@@ -78,7 +79,7 @@ document.explorerFrontend = new Vue({
 			},
 		});
 
-		this.md.cmi = require('../modules/codeMirrorImages/codeMirrorImages.js')(this.document,this.md);
+		this.md.cmi = require('../modules/codeMirrorImages/codeMirrorImages.js')(this.document,this.md, this.path);
 		this.md.codemirror.on('change', editor => {
 			this.unsaved = true,
 			this.md.cmi.checkForImage();

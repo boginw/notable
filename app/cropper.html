@@ -27,12 +27,13 @@
 	<script type="text/javascript">var nodeRequire = require</script>
 	<script type="text/javascript">
 		const remote = require('electron').remote;
+		const {app} = remote;
 		var ipcRenderer = require('electron').ipcRenderer;
 		var cropper = require("cropperjs");
 		var image = document.getElementById("image");
 		var sender;
 		var cropperVar;
-
+		let rootDir = app.getPath('documents')+"/";
 
 		document.onkeydown = function(evt) {
 		    evt = evt || window.event;
@@ -50,14 +51,14 @@
 
 		ipcRenderer.on('store-data', function (event,store) {
 			sender = event;
-			image.src = "../notes/"+store;
+			image.src = rootDir+"notes/"+store;
 			console.log(store);
 			cropImage = ()=>{
 				console.log("cropImage");
 				var dat = cropperVar.getCroppedCanvas().toDataURL();
 
 				var base64Data = dat.replace(/^data:image\/png;base64,/, "");
-				require("fs").writeFile("notes/"+require("path").basename(image.src), base64Data, 'base64', function(err) {
+				require("fs").writeFile(rootDir+"notes/"+require("path").basename(image.src), base64Data, 'base64', function(err) {
 					console.log(err);
 					remote.getCurrentWindow().webContents.emit("cropped");
 					remote.getCurrentWindow().close();

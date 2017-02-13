@@ -1,5 +1,5 @@
 module.exports = ({
-	props:["remote","BrowserWindow","document"],
+	props:["remote","BrowserWindow","document","rootdir"],
 	template:`<span class="btn-sidebar btn-preferences" @click="screenshot()">
 							<i class="icon material-icons">camera_enhance</i>
 						</span>`,
@@ -98,6 +98,7 @@ module.exports = ({
 		screenshot(){
 			console.log("taking screenshot");
 			remote.getCurrentWindow().hide();
+			var rootdir = this.rootdir;
 			this.fullscreenScreenshot((dat)=>{
 
 				var currentTime = this.getDate();
@@ -121,17 +122,17 @@ module.exports = ({
 				});
 
 				screenshotWindow.webContents.on('cropped', () => {
-					document.md.value(document.md.value()+"\n![screenshot](../notes/scr_"+currentTime+".png)");
+					document.md.value(document.md.value()+"\n![screenshot]({DIR}/scr_"+currentTime+".png)");
 					remote.getCurrentWindow().show();
 
 					screenshotWindow = null;
 				});
 
 				var base64Data = dat.replace(/^data:image\/png;base64,/, "");
-				require("fs").writeFile("notes/scr_"+currentTime+".png", base64Data, 'base64', function(err) {
+				require("fs").writeFile(rootdir+"notes/scr_"+currentTime+".png", base64Data, 'base64', function(err) {
 					if(err)
 						console.log(err);
-				});
+				}).bind(this);
 
 			}, 'image/png');
 		},
