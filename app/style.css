@@ -15,12 +15,6 @@ tbody{
     width: 100%;
 }
 
-tr{
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
 .contents{
 	position: absolute;
     top: 0px;

@@ -13,13 +13,14 @@ let {mainBroadcastListener} = require('electron-ipc-broadcast');
 mainBroadcastListener();
 
 let mainWindow;
+let rootDir = app.getPath('documents')+"/";
 
-if(!fs.existsSync('notes/')){
-	fs.mkdirSync("notes");
+if(!fs.existsSync(rootDir+'notes/')){
+	fs.mkdirSync(rootDir+"notes");
 }
 
-if(!fs.existsSync('notes/init.md')){
-	fs.writeFile('notes/init.md',"# Hello", function(err) {
+if(!fs.existsSync(rootDir+'notes/init.md')){
+	fs.writeFile(rootDir+'notes/init.md',"# Hello", function(err) {
 		if(err) {
 		    return console.log(err);
 		}

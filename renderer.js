@@ -8,12 +8,12 @@ const Vue = require('vue/dist/vue.js');
 
 // Custom modules
 const file 			  = require('../modules/file/file.js')();
-//const projectExplorer = require('../modules/projectExplorer/projectExplorer.js')(ipcRenderer, document, remote);
-document.__dirname = __dirname;
 
+let rootDir = app.getPath('documents')+"/";
+document.__dirname = rootDir+"/"+"notes";
 vex.registerPlugin(require('vex-dialog'));
 vex.defaultOptions.className = 'vex-theme-os';
-
+console.log(rootDir);
 
 function hasClassName(needle, haystack){
 	return !!haystack && haystack.split(" ").indexOf(needle) != -1;
@@ -52,12 +52,12 @@ let store = {
 	remote: remote,
 	fs: fs,
 	pathd: path,
-	path : './notes',
+	path : rootDir+'notes',
 	filetree: [],
 	isWindows: true,
 	search: "",
 	md: false,
-	defaultFile: "./notes/init.md",
+	defaultFile: rootDir+"notes/init.md",
 	saveIntervals: null,
 	shell:shell,
 	acceptedfiles : [
@@ -139,9 +139,6 @@ document.explorerFrontend = new Vue({
 
 			file.saveFile(path, contents);
 			defaultFile = path;
-		},
-		updateProject(){
-			this.setDirectory("./notes/");
 		},
 		openFile(path){
 			this.defaultFile = path;

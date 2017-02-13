@@ -82,7 +82,7 @@ module.exports = ({
 		createFolderDialog(folder){
 			let newPath;
 			if(folder === undefined){
-				newPath = "./notes/";
+				newPath = path;
 			}else{
 				if(folder[1]){
 					newPath = folder[0]+"/"+folder[1].name+"/";
@@ -208,7 +208,7 @@ module.exports = ({
 		deleteFile(folder){
 			let newPath;
 			if(folder === undefined){
-				newPath = "./notes/";
+				newPath = path;
 			}else{
 				if(folder[1]){
 					newPath = folder[0]+"/"+folder[1].name+"/";

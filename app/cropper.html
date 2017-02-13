@@ -14,8 +14,8 @@
 				height: 100vh;
 			}
 
-			.cropper-crop-box:after{
-				content:"<button>hello</button>";
+			.contents{
+				height:100vh;
 			}
 		</style>
 	</head>
@@ -31,6 +31,8 @@
 		var cropper = require("cropperjs");
 		var image = document.getElementById("image");
 		var sender;
+		var cropperVar;
+
 
 		document.onkeydown = function(evt) {
 		    evt = evt || window.event;
@@ -52,7 +54,7 @@
 			console.log(store);
 			cropImage = ()=>{
 				console.log("cropImage");
-				var dat = cropper.getCroppedCanvas().toDataURL();
+				var dat = cropperVar.getCroppedCanvas().toDataURL();
 
 				var base64Data = dat.replace(/^data:image\/png;base64,/, "");
 				require("fs").writeFile("notes/"+require("path").basename(image.src), base64Data, 'base64', function(err) {
@@ -62,8 +64,10 @@
 				});
 			}
 
-			var cropper = new Cropper(image, {
+			cropperVar = new Cropper(image, {
 				zoomable: false,
+				viewMode: 2,
+				responsive: true,
 				ready(){
 					button = document.createElement("button");
 					button.innerHTML = "Crop";
@@ -80,7 +84,6 @@
 					console.log(e.detail.scaleY);
 				}
 			});
-
 		    console.log(store);
 		});
 	</script>
