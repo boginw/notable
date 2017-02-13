@@ -14,50 +14,6 @@ document.__dirname = __dirname;
 vex.registerPlugin(require('vex-dialog'));
 vex.defaultOptions.className = 'vex-theme-os';
 
-function setMenu(){
-	let menu = require('../modules/menu/menu.js')(app, shell, document, BrowserWindow, dialog);
-	Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
-
-	  const InputMenu = Menu.buildFromTemplate([{
-	        label: 'Undo',
-	        role: 'undo',
-	    }, {
-	        label: 'Redo',
-	        role: 'redo',
-	    }, {
-	        type: 'separator',
-	    }, {
-	        label: 'Cut',
-	        role: 'cut',
-	    }, {
-	        label: 'Copy',
-	        role: 'copy',
-	    }, {
-	        label: 'Paste',
-	        role: 'paste',
-	    }, {
-	        type: 'separator',
-	    }, {
-	        label: 'Select all',
-	        role: 'selectall',
-	    },
-	]);
-
-	document.body.addEventListener('contextmenu', (e) => {
-	    e.preventDefault();
-	    e.stopPropagation();
-
-	    let node = e.target;
-
-	    while (node) {
-	        if (hasClassName("CodeMirror", node.className)) {
-	            InputMenu.popup(remote.getCurrentWindow());
-	            break;
-	        }
-	        node = node.parentNode;
-	    }
-	});
-}
 
 function hasClassName(needle, haystack){
 	return !!haystack && haystack.split(" ").indexOf(needle) != -1;
@@ -80,7 +36,7 @@ function linkHandler(){
 }
 
 function init(){
-	setMenu();
+
 }
 
 init();
