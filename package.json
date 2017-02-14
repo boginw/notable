@@ -6,7 +6,9 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "pack-win": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=win32 --arch=ia32 --icon=app/img/logo.ico --out=out --version-string.CompanyName='Notable.Ink' --version-string.FileDescription='a notable tool for taking notes' --version-string.ProductName='Notable'",
+    "pack:win": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=win32 --arch=ia32 --icon=app/img/logo.ico --out=out --version-string.CompanyName=\"Notable.Ink\" --version-string.FileDescription=\"a notable tool for taking notes\" --version-string.ProductName=Notable",
+    "pack:mac": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=darwin --arch=x64 --icon=app/img/logo.icns --out=out",
+    "pack:linux": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=linux --arch=x64 --out=out",
     "installer": "node ./script/installer.js",
     "sign-exe": "signcode out/notable-win32-ia32/notable.exe --cert cert.p12 --name 'Notable' --url 'https://notable.ink'",
     "sign-installer": "signcode ./out/windows-installer/Setup.exe --cert ./cert.p12 --name 'Notable' --url 'https://notable.ink'"
@@ -15,13 +17,17 @@
     "app-bundle-id": "ink.notable",
     "iconUrl": "app/img/icon.png"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boginw/notable.git"
+  },
+  "homepage": "https://notable.ink/",
   "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "Notable",
+    "markdown",
+    "note",
+    "electron",
+    "mde"
   ],
   "author": "boginw",
   "license": "CC0-1.0",
