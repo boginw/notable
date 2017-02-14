@@ -9,7 +9,7 @@ before_script:
   - sleep 3
 
 script:
-  - npm run pack-linux
+  - npm run pack:linux
 
 branches:
   only:
