@@ -1,10 +1,12 @@
 /* Includes */
 const fs = require('fs');
-const {remote, ipcRenderer, desktopCapturer, screen} = require('electron')
+const {remote, ipcRenderer, desktopCapturer, screen, webFrame} = require('electron')
 const {Menu, MenuItem, app, shell, BrowserWindow, dialog} = remote;
 const vex = require('vex-js');
 const path = require('path');
 const Vue = require('vue/dist/vue.js');
+
+
 
 // Custom modules
 const file 			  = require('../modules/file/file.js')();
@@ -36,7 +38,15 @@ function linkHandler(){
 }
 
 function init(){
-
+	// TODO: test scaling
+	var size = screen.getPrimaryDisplay().workAreaSize;
+	log2 = (number)=>{
+	    return Math.log(number) / Math.log(2);
+	}
+	var scaleFactor = log2((size.width*size.height)/(1000*800));
+	
+	console.log(scaleFactor);
+	webFrame.setZoomFactor(scaleFactor);
 }
 
 init();
