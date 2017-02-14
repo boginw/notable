@@ -111,6 +111,28 @@ module.exports = ({
 			    }
 			});
 		},
+		createFileDialog(file){
+			console.log(file);
+			if(file === undefined) return;
+			let filePath = file[0]+"/"+file[1].name;
+
+			vex.dialog.open({
+			    message: 'Enter file name:',
+			    input: [
+			        '<input name="fileName" type="text" placeholder="file name" required />'
+			    ].join(''),
+			    callback: (data)=>{
+			        if (!data) {
+			            console.log('Cancelled');
+			        } else {
+			        	console.log(filePath, data.fileName);
+			        	document.explorerFrontend.saveFile(filePath + data.fileName, "");
+			        	this.filetree = this.getDirectoriesInPath(this.path);
+			        	this.open(filePath + data.fileName);
+			        }
+			    }
+			});
+		},
 		createFolderProject(path, style){
 			fs.mkdirSync(path);
 			document.explorerFrontend.saveFile(path+"/folder.json",JSON.stringify({
@@ -174,6 +196,7 @@ module.exports = ({
 			}
 		},
 		rightClick(file, event){
+
 			if(this.document.isRootRight == event){
 				return;
 			}
@@ -183,6 +206,7 @@ module.exports = ({
 				this.ProjectExplorerContext.empty.popup(remote.getCurrentWindow());
 				return;
 			}
+
 
 			currentRight = file || {empty:true};
 			if(currentRight.isFolder){
@@ -241,6 +265,8 @@ module.exports = ({
 			let r = {};
 
 			r.new = (file) => {
+
+				if(file[1] == false) console.trace();
 				this.createFileDialog(file);
 			}
 
@@ -270,6 +296,9 @@ module.exports = ({
 					{
 						label: 'New Note',
 						role: 'new',
+						click: (e)=>{
+							this.files().new([this.path,this.currentRight]);
+						}
 					}, {
 						type: 'separator',
 					}, {
@@ -284,6 +313,9 @@ module.exports = ({
 					{
 						label: 'New Note',
 						role: 'new',
+						click: ()=>{
+							this.files().new([this.path,this.currentRight]);
+						}
 					}, {
 						label: 'Rename',
 						role: 'rename',
