@@ -1,10 +1,25 @@
 /* Includes */
 const fs = require('fs');
-const {remote, ipcRenderer, desktopCapturer, screen} = require('electron')
+const {remote, ipcRenderer, desktopCapturer, screen, webFrame} = require('electron')
 const {Menu, MenuItem, app, shell, BrowserWindow, dialog} = remote;
 const vex = require('vex-js');
 const path = require('path');
 const Vue = require('vue/dist/vue.js');
+
+if(process.platform == "linux"){
+	cp = require('child_process');
+	var distroRegExp = /NAME="([A-z]+)"/gm;
+	var releaseString = eval("String.fromCharCode("+cp.execSync("cat /etc/*-release").join(",")+")");
+	var distro = distroRegExp.exec(releaseString);
+	if(distro.length && distro[1] == "Ubuntu"){
+		var scalingArray = cp.execSync("gsettings get org.gnome.desktop.interface text-scaling-factor");
+		var scaling = Number.parseFloat(eval("String.fromCharCode("+scalingArray.join(",")+")"));
+		webFrame.setZoomFactor(scaling);
+		console.log(`You're running Linux (${distro[1]}) \
+					 with text-scaling-factor set to ${scaling}\
+					 So we've scaled the Window to the same scaling.`);
+	}
+}
 
 // Custom modules
 const file 			  = require('../modules/file/file.js')();

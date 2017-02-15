@@ -3,11 +3,13 @@ module.exports = ({
 	data(){
 		return {
 			fullscreen: false,
-			isWindows: true
+			isWindows: true,
+			isLinux: false
 		}
 	},
 	created(){
 		this.isWindows = process.platform == "win32";
+		this.isLinux   = process.platform == "linux";
 		this.fullscreen = remote.getCurrentWindow().isMaximized() ||
 						  remote.getCurrentWindow().isFullScreen()
 	},
@@ -32,7 +34,7 @@ module.exports = ({
 			remote.getCurrentWindow().minimize();
 		},
 		handleFullscreen: function () {
-			if (this.isWindows) {
+			if (this.isWindows || this.isLinux) {
 				if (remote.getCurrentWindow().isMaximized()) {
 					remote.getCurrentWindow().unmaximize();
 				} else {
