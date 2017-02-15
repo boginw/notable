@@ -5,7 +5,7 @@
   "description": "A minimal markdown application",
   "main": "main.js",
   "scripts": {
-    "start": "electron . --high-dpi-support=1 #--force-device-scale-factor=1.25",
+    "start": "electron . --high-dpi-support=1",
     "pack:win": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=win32 --arch=ia32 --icon=app/img/logo.ico --out=out --version-string.CompanyName=\"Notable.Ink\" --version-string.FileDescription=\"a notable tool for taking notes\" --version-string.ProductName=Notable",
     "pack:mac": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=darwin --arch=x64 --icon=app/img/logo.icns --out=out",
     "pack:linux": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=linux --arch=x64 --out=out",
