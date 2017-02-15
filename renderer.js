@@ -6,7 +6,20 @@ const vex = require('vex-js');
 const path = require('path');
 const Vue = require('vue/dist/vue.js');
 
-
+if(process.platform == "linux"){
+	cp = require('child_process');
+	var distroRegExp = /NAME="([A-z]+)"/gm;
+	var releaseString = eval("String.fromCharCode("+cp.execSync("cat /etc/*-release").join(",")+")");
+	var distro = distroRegExp.exec(releaseString);
+	if(distro.length && distro[1] == "Ubuntu"){
+		var scalingArray = cp.execSync("gsettings get org.gnome.desktop.interface text-scaling-factor");
+		var scaling = Number.parseFloat(eval("String.fromCharCode("+scalingArray.join(",")+")"));
+		webFrame.setZoomFactor(scaling);
+		console.log(`You're running Linux (${distro[1]}) \
+					 with text-scaling-factor set to ${scaling}\
+					 So we've scaled the Window to the same scaling.`);
+	}
+}
 
 // Custom modules
 const file 			  = require('../modules/file/file.js')();
@@ -38,15 +51,7 @@ function linkHandler(){
 }
 
 function init(){
-	// TODO: test scaling
-	var size = screen.getPrimaryDisplay().workAreaSize;
-	log2 = (number)=>{
-	    return Math.log(number) / Math.log(2);
-	}
-	var scaleFactor = log2((size.width*size.height)/(1000*800));
-	
-	console.log(scaleFactor);
-	webFrame.setZoomFactor(scaleFactor);
+
 }
 
 init();
