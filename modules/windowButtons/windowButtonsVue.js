@@ -1,5 +1,5 @@
 module.exports = ({
-	props:["remote"],
+	props:["remote","left"],
 	data(){
 		return {
 			fullscreen: false,
@@ -13,15 +13,23 @@ module.exports = ({
 		this.fullscreen = remote.getCurrentWindow().isMaximized() ||
 						  remote.getCurrentWindow().isFullScreen()
 	},
-	template: `<div class="windows-buttons">
-						<div class="windows-button button-minimize enabled" @click="handleMinimize()">
+	template: `
+				<div>
+					<div class="logo" v-if="(left && isWindows) || (!left && !isWindows)"><img src="img/logo.png" width="30" height="30"></div>
+
+					<div v-bind:class="{'windows-buttons': isWindows, buttons: !isWindows}" v-if="(isWindows && !left) || (left && !isWindows)">
+						<div class="button-minimize enabled" v-if="isWindows" @click="handleMinimize()" v-bind:class="{'windows-button': isWindows, button: !isWindows}">
 							<div class="icon"></div>
 						</div>
-						<div class="windows-button button-fullscreen enabled" @click="handleFullscreen()">
+						<div class="button-fullscreen enabled" @click="handleFullscreen()" v-bind:class="{'windows-button': isWindows, button: !isWindows}">
 							<div class="icon"></div>
 						</div>
-						<div class="windows-button button-close enabled" @click="handleClose()"></div>
-					</div>`,
+						<div class="button-minimize enabled" v-if="!isWindows" @click="handleMinimize()" v-bind:class="{'windows-button': isWindows, button: !isWindows}">
+							<div class="icon"></div>
+						</div>
+						<div class="button-close enabled" @click="handleClose()" v-bind:class="{'windows-button': isWindows, button: !isWindows}"></div>
+					</div>
+				</div>`,
 	methods:{
 		handleClose() {
 			if (this.isWindows) {

@@ -114,7 +114,7 @@ module.exports = ({
 		createFileDialog(file){
 			console.log(file);
 			if(file === undefined) return;
-			let filePath = file[0]+"/"+file[1].name;
+			let filePath = file[0]+(file[1]? "/"+file[1].name: "");
 
 			vex.dialog.open({
 			    message: 'Enter file name:',
@@ -126,7 +126,7 @@ module.exports = ({
 			            console.log('Cancelled');
 			        } else {
 			        	console.log(filePath, data.fileName);
-			        	document.explorerFrontend.saveFile(filePath + data.fileName, "");
+			        	document.explorerFrontend.saveFile(filePath +"/"+ data.fileName, "");
 			        	this.filetree = this.getDirectoriesInPath(this.path);
 			        	this.open(filePath + data.fileName);
 			        }
@@ -196,7 +196,6 @@ module.exports = ({
 			}
 		},
 		rightClick(file, event){
-
 			if(this.document.isRootRight == event){
 				return;
 			}
@@ -207,9 +206,8 @@ module.exports = ({
 				return;
 			}
 
-
-			currentRight = file || {empty:true};
-			if(currentRight.isFolder){
+			this.currentRight = file || {empty:true};
+			if(this.currentRight.isFolder){
 				this.ProjectExplorerContext.folder.popup(remote.getCurrentWindow());
 			}else{
 				this.ProjectExplorerContext.file.popup(remote.getCurrentWindow());
@@ -271,6 +269,7 @@ module.exports = ({
 			}
 
 			r.rename = (file) => {
+				if(file[1] == false) console.trace();
 				this.renameDialog(file, true);
 			}
 
@@ -320,7 +319,7 @@ module.exports = ({
 						label: 'Rename',
 						role: 'rename',
 						click: ()=>{
-							this.folders().rename([this.path,currentRight]);
+							this.folders().rename([this.path,this.currentRight]);
 						}
 					}, {
 						type: 'separator',
@@ -328,7 +327,7 @@ module.exports = ({
 						label: 'New Folder',
 						role: 'newFolder',
 						click: (e)=>{
-							this.folders().new([this.path,currentRight]);
+							this.folders().new([this.path,this.currentRight]);
 						}
 					}, {
 						label: 'Delete Folder',
@@ -345,13 +344,13 @@ module.exports = ({
 						label: 'Rename',
 						role: 'rename',
 						click: ()=>{
-							this.files().rename([this.path,currentRight]);
+							this.files().rename([this.path,this.currentRight]);
 						}
 					}, {
 						label: 'Delete',
 						role: 'delete',
 						click: ()=>{
-							console.log(this.deleteFile([this.path,currentRight]));
+							console.log(this.deleteFile([this.path,this.currentRight]));
 						}
 					}, {
 						type: 'separator',
@@ -359,7 +358,8 @@ module.exports = ({
 						label: 'Open Containing Folder',
 						role: 'openfolder',
 						click:()=>{
-							this.shell.showItemInFolder(document.__dirname+"/."+this.path+"/"+currentRight.name)
+							console.log(this.path+"/"+this.currentRight.name);
+							this.shell.showItemInFolder(this.path+this.pathd.sep+this.currentRight.name);
 						}
 					}
 				])

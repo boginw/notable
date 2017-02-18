@@ -10,6 +10,8 @@ const windowStateKeeper = require('electron-window-state');
 const Config = require('electron-config')
 const config = new Config();
 let {mainBroadcastListener} = require('electron-ipc-broadcast');
+let vueChromeId = "nhdogjmejiglipccpnnnanhbledajbpd";
+
 
 mainBroadcastListener();
 
@@ -45,6 +47,10 @@ function createWindow () {
 		'height': mainWindowState.height,
 		frame: false
 	});
+
+	/*let vuePath = `C:\\Users\\hamburger\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Extensions\\${vueChromeId}\\3.0.8_0`;
+    BrowserWindow.addDevToolsExtension(vuePath);*/
+
 
 	// and load the index.html of the app.
 	mainWindow.loadURL(
