@@ -1,7 +1,7 @@
 {
   "name": "notable",
   "productName": "Notable",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A minimal markdown application",
   "main": "main.js",
   "scripts": {
@@ -11,7 +11,9 @@
     "pack:linux": "electron-packager . --asar.unpack=protocol-link.html --overwrite --platform=linux --arch=x64 --out=out",
     "installer": "node ./script/installer.js",
     "sign-exe": "signcode out/notable-win32-ia32/notable.exe --cert cert.p12 --name 'Notable' --url 'https://notable.ink'",
-    "sign-installer": "signcode ./out/windows-installer/Setup.exe --cert ./cert.p12 --name 'Notable' --url 'https://notable.ink'"
+    "sign-installer": "signcode ./out/windows-installer/Setup.exe --cert ./cert.p12 --name 'Notable' --url 'https://notable.ink'",
+    "pack": "npm run pack:mac && npm run pack:win && npm run pack:linux",
+    "prepare-release": "npm run package && npm run sign-exe && npm run installer && npm run sign-installer"
   },
   "build": {
     "app-bundle-id": "ink.notable",

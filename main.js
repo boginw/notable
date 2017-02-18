@@ -12,7 +12,6 @@ const config = new Config();
 let {mainBroadcastListener} = require('electron-ipc-broadcast');
 let vueChromeId = "nhdogjmejiglipccpnnnanhbledajbpd";
 
-
 mainBroadcastListener();
 
 let mainWindow;

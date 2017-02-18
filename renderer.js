@@ -92,6 +92,9 @@ document.explorerFrontend = new Vue({
 			shortcuts: {
 				drawTable: "Cmd-Alt-T"
 			},
+			previewRender:(plaintext)=>{
+				return this.md.markdown(plaintext.replace(/{DIR}/gm,this.path));
+			}
 		});
 
 		this.md.cmi = require('../modules/codeMirrorImages/codeMirrorImages.js')(this.document,this.md, this.path);

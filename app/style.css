@@ -5,7 +5,7 @@
 	src: local('Roboto'), local('Roboto-Regular'), url(./fonts/Roboto/Robot-Medium.tff) format('ttf');
 }
 
-body,html{
+body{
 	margin:0px;
 	padding:0px;
     font-family: "Helvetica Neue", Segoe UI, "Ubuntu", Arial, "Lucida Grande", sans-serif;
@@ -80,6 +80,10 @@ tbody{
     display: flex;
     justify-content: flex-end;
     flex: 1 0;
+}
+
+.maximized{
+    margin:10px;
 }
 
 .header .buttons {
@@ -476,8 +480,7 @@ h4 {
     background-color: rgba(34, 184, 235, 0.2);
 }    
 .folders_and_files .title{
-    padding-left: 3px;
-
+    padding-left: 8px;
 }
 .folders_and_files>ul>li .fileName{
     color: inherit;
