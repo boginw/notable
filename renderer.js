@@ -82,6 +82,8 @@ let store = {
 	unsaved:true
 };
 
+document.widgets = [];
+
 document.explorerFrontend = new Vue({
 	el: '.contents',
 	data: store,
@@ -93,14 +95,41 @@ document.explorerFrontend = new Vue({
 				drawTable: "Cmd-Alt-T"
 			},
 			previewRender:(plaintext)=>{
-				return this.md.markdown(plaintext.replace(/{DIR}/gm,this.path));
+				// Directory placeholder
+				plaintext = plaintext.replace(/{DIR}/gm,this.path);
+
+				// Math placeholder
+				const regex = /\$\$?(.*?)\$?\$/g;
+				while ((m = regex.exec(plaintext)) !== null) {
+				    // This is necessary to avoid infinite loops with zero-width matches
+				    if (m.index === regex.lastIndex) {
+				        regex.lastIndex++;
+				    }
+				    try{
+				    	console.log(m[1]);
+				    	plaintext = plaintext.replace(m[0]+"", katex.renderToString(m[1].replace(/\$/gm,"")));
+				    }catch(ignore){
+				    	console.log(ignore);
+				    }
+				}
+
+				return this.md.markdown(plaintext);
 			}
 		});
 
 		this.md.cmi = require('../modules/codeMirrorImages/codeMirrorImages.js')(this.document,this.md, this.path);
+		this.md.cmm = require('../modules/codeMirrorMath/codeMirrorMath.js')(this.document,this.md, this.path);
 		this.md.codemirror.on('change', editor => {
+			for (var i = 0; i < document.widgets.length; ++i){
+	    		this.md.codemirror.removeLineWidget(document.widgets[i]);
+		    }
+
+		    document.widgets.length = 0;
+
+
 			this.unsaved = true,
 			this.md.cmi.checkForImage();
+			this.md.cmm.checkForMath();
 			clearTimeout(this.saveIntervals);
 			this.saveIntervals = setTimeout(()=>{
 				this.saveCurrentFile();
@@ -112,6 +141,7 @@ document.explorerFrontend = new Vue({
 		document.md = this.md;
 	},
 	computed:{
+
 		openedFile(){
 			return path.basename(this.defaultFile);
 		}
