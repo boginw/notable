@@ -51,6 +51,7 @@
     "file": "^0.2.2",
     "font-awesome": "^4.7.0",
     "fs": "0.0.1-security",
+    "katex": "^0.7.1",
     "material-icons": "^0.1.0",
     "rimraf": "^2.5.4",
     "simplemde": "^1.11.2",

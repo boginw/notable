@@ -4,6 +4,7 @@ const {remote, ipcRenderer, desktopCapturer, screen, webFrame} = require('electr
 const {Menu, MenuItem, app, shell, BrowserWindow, dialog} = remote;
 const vex = require('vex-js');
 const path = require('path');
+const katex = require('katex');
 const Vue = require('vue/dist/vue.js');
 
 if(process.platform == "linux"){

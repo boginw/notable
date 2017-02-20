@@ -22,12 +22,15 @@ if(!fs.existsSync(rootDir+'notes/')){
 }
 
 if(!fs.existsSync(rootDir+'notes/init.md')){
-	fs.writeFile(rootDir+'notes/init.md',"# Hello\nThis is version: "+app.getVersion(), function(err) {
-		if(err) {
-		    return console.log(err);
+	fs.writeFile(rootDir+'notes/init.md',
+		`# Welcome to Notable\nThis is version: **${app.getVersion()}**`, 
+		function(err) {
+			if(err) {
+			    return console.log(err);
+			}
+			console.log("The file was saved! "+path);
 		}
-		console.log("The file was saved! "+path);
-	});
+	);
 }
 
 function createWindow () {

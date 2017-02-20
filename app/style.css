@@ -524,7 +524,7 @@ h4 {
     top: 41px;
 }
 
-.editor-toolbar.fullscreen::after{
+.editor-toolbar.fullscreen::after, .editor-toolbar.fullscreen::before{
     background: initial;
 }
 
