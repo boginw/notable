@@ -402,7 +402,7 @@ h4 {
 
 
 .CodeMirror{
-	height: calc(100% - 105px);
+	height: calc(100% - 111px);
 }
 
 .left_panel{
@@ -518,4 +518,23 @@ h4 {
 .CodeMirror img{
     max-width: 100%;
     height: initial;
+}
+
+.editor-toolbar.fullscreen{
+    top: 41px;
+}
+
+.editor-toolbar.fullscreen::after{
+    background: initial;
+}
+
+.CodeMirror-fullscreen, .editor-preview-active-side{
+    top: 91px;
+    bottom: 41px;
+}
+
+.editor-statusbar{
+    position: absolute;
+    right: 0px;
+    bottom: 5px;
 }
