@@ -80,6 +80,7 @@ let store = {
 	acceptedfiles : [
 		".md"
 	],
+	openedFile:undefined,
 	unsaved:true
 };
 
@@ -140,14 +141,21 @@ document.explorerFrontend = new Vue({
 		this.md.toolbarElements.guide.outerHTML = "";
 		this.md.value(this.openFile(this.defaultFile));
 		document.md = this.md;
+		console.log(this.defaultFile);
 	},
 	computed:{
 
-		openedFile(){
+		currentOpenFile(){
 			return path.basename(this.defaultFile);
 		}
 	},
 	methods:{
+		setOpenFile(file){
+			this.openedFile = file;
+		},
+		getOpenFile(){
+			return this.openedFile;
+		},
 		newFile(){
 			this.defaultFile = false;
 			this.md.value("");

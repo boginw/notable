@@ -3,6 +3,9 @@ module.exports = ({
 	created(){
 		// if this is root
 		this.filetree = this.getDirectoriesInPath(this.path);
+		setTimeout(()=>{
+			this.updateTree();	
+		},50);
 	},
 	template: `<ul @contextmenu="rightClick(undefined, $event)">
 					<li 
@@ -13,7 +16,7 @@ module.exports = ({
 						@dragover.prevent 
 						@dragstart="dragstart_handler($event,file)"
 						@dragenter.prevent="()=>true"
-						:class="{open : file==openedFile}"
+						:class="{open : isOpenedFile(file)}"
 					>
 						<span 
 							v-bind:class="{ folderName: file.isFolder, fileName: !file.isFolder }" 
@@ -60,6 +63,13 @@ module.exports = ({
 		}
 	},
 	methods:{
+		isOpenedFile(file){
+			if(!document.explorerFrontend || !document.explorerFrontend.$data.defaultFile){
+				return false;
+			}else{
+				return this.path +"/"+ file.name == document.explorerFrontend.defaultFile
+			}
+		},
 		renameDialog(file, isFile){
 			let filePath = file[0]+"/"+file[1].name;
 			let fileOrFolder = !!isFile ? "file" : "folder";
@@ -112,7 +122,6 @@ module.exports = ({
 			});
 		},
 		createFileDialog(file){
-			console.log(file);
 			if(file === undefined) return;
 			let filePath = file[0]+(file[1]? "/"+file[1].name: "");
 
@@ -195,6 +204,11 @@ module.exports = ({
 				});
 			}
 		},
+		updateTree(){
+			var tempTree = this.filetree;
+			this.filetree = null;
+			this.filetree = tempTree;
+		},
 		rightClick(file, event){
 			if(this.document.isRootRight == event){
 				return;
@@ -216,10 +230,9 @@ module.exports = ({
 		open(item){
 			if(!item.isFolder){
 				document.explorerFrontend.openFile(this.path+'/'+item.name);
-				//this.$emit("openFile",this.path+'/'+item.name);
-				this.openedFile = item;
+				document.openedFile = item;
+				this.updateTree();
 			}else if(item.open==false){
-				//this.$emit("openDir",this.path+'/'+item.name);
 				item.childrens = this.getDirectoriesInPath(this.path+'/'+item.name);
 				item.open = true;
 			}else{
@@ -227,19 +240,14 @@ module.exports = ({
 				item.open = false;
 			}
 		},
-		deleteFile(folder){
-			let newPath;
-			if(folder === undefined){
-				newPath = path;
-			}else{
-				if(folder[1]){
-					newPath = folder[0]+"/"+folder[1].name+"/";
-				}else{
-					newPath = folder[0]+"/";
-				}
+		deleteFile(file){
+			if(file === undefined) return;
+			let filePath = file[0]+(file[1]? "/"+file[1].name: "");
+			if(document.openedFile && document.openedFile.name == file[1].name){
+				alert("Cannot delete opened file");
+				return;
 			}
-
-			this.fs.unlinkSync(newPath);
+			this.fs.unlinkSync(filePath);
 			this.filetree = this.getDirectoriesInPath(this.path);
 		},
 		folders(){
@@ -274,8 +282,7 @@ module.exports = ({
 			}
 
 			r.delete = (initPath) => {
-				console.log("Delete this file: "+initPath);
-				this.delete(initPath);
+				this.deleteFile(initPath);
 			}
 
 			return r;
@@ -348,9 +355,9 @@ module.exports = ({
 						}
 					}, {
 						label: 'Delete',
-						role: 'delete',
+						role: 'deleteFile',
 						click: ()=>{
-							console.log(this.deleteFile([this.path,this.currentRight]));
+							this.files().delete([this.path,this.currentRight]);
 						}
 					}, {
 						type: 'separator',
