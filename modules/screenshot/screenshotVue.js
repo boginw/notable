@@ -129,10 +129,10 @@ module.exports = ({
 				});
 
 				var base64Data = dat.replace(/^data:image\/png;base64,/, "");
-				require("fs").writeFile(rootdir+"notes/scr_"+currentTime+".png", base64Data, 'base64', function(err) {
+				require("fs").writeFile(rootdir+"notes/scr_"+currentTime+".png", base64Data, 'base64', (err)=>{
 					if(err)
 						console.log(err);
-				}).bind(this);
+				});
 
 			}, 'image/png');
 		},
