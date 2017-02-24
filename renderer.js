@@ -82,7 +82,8 @@ let store = {
 		".png"
 	],
 	openedFile:undefined,
-	unsaved:true
+	unsaved:true,
+	supressChange: false
 };
 
 document.widgets = [];
@@ -123,20 +124,25 @@ document.explorerFrontend = new Vue({
 		this.md.cmi = require('../modules/codeMirrorImages/codeMirrorImages.js')(this.document,this.md, this.path);
 		this.md.cmm = require('../modules/codeMirrorMath/codeMirrorMath.js')(this.document,this.md, this.path);
 		this.md.codemirror.on('change', editor => {
-			for (var i = 0; i < document.widgets.length; ++i){
-	    		this.md.codemirror.removeLineWidget(document.widgets[i]);
-		    }
+			if(!this.supressChange){
+				for (var i = 0; i < document.widgets.length; ++i){
+		    		this.md.codemirror.removeLineWidget(document.widgets[i]);
+			    }
 
-		    document.widgets.length = 0;
+			    document.widgets.length = 0;
 
 
-			this.unsaved = true,
-			this.md.cmi.checkForImage();
-			this.md.cmm.checkForMath();
-			clearTimeout(this.saveIntervals);
-			this.saveIntervals = setTimeout(()=>{
-				this.saveCurrentFile();
-			},1500);
+				this.unsaved = true;
+				this.md.cmi.checkForImage();
+				this.md.cmm.checkForMath();
+				clearTimeout(this.saveIntervals);
+				this.saveIntervals = setTimeout(()=>{
+					this.saveCurrentFile();
+				},1500);
+			}else{
+				this.unsaved = false;
+				this.supressChange = !this.supressChange;
+			}
 		});
 
 		this.md.toolbarElements.guide.outerHTML = "";
@@ -151,6 +157,9 @@ document.explorerFrontend = new Vue({
 		}
 	},
 	methods:{
+		currentOpenFileExt(){
+			return path.extname(this.defaultFile);
+		},
 		setOpenFile(file){
 			this.openedFile = file;
 		},
@@ -195,10 +204,13 @@ document.explorerFrontend = new Vue({
 		},
 		openFile(path){
 			if(this.pathd.extname(path) == '.png'){
-				
+
+			}else{
+				this.supressChange = true;
+				this.md.value(file.openFile(path));
 			}
+
 			this.defaultFile = path;
-			this.md.value(file.openFile(path));
 			console.log("opening file: "+path);
 			document.title = "Notable.ink - " + __dirname + "\\." + path;
 		},

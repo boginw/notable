@@ -239,9 +239,7 @@ module.exports = ({
 			}
 		},
 		open(item){
-			if(item.extension == ".png"){
-				console.log("png!!!");
-			}else if(!item.isFolder){
+			if(!item.isFolder){
 				document.explorerFrontend.openFile(this.path+'/'+item.name);
 				document.openedFile = item;
 				this.updateTree();

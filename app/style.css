@@ -465,8 +465,6 @@ h4 {
     max-width: 220px;
 }
 .folders_and_files ul li{
-    padding-top:5px;
-    padding-bottom:5px;
     display:block;
     cursor:pointer;
     user-select: none;
@@ -480,7 +478,7 @@ h4 {
     background-color: rgba(34, 184, 235, 0.2);
 }    
 .folders_and_files .title{
-    padding-left: 8px;
+    padding: 5px 8px 5px 0px;
 }
 .folders_and_files>ul>li .fileName{
     color: inherit;
@@ -546,4 +544,14 @@ h4 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.image_holder{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.image_holder img{
+    max-width:100%;
+    max-height: 100%;
 }

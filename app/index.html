@@ -12,7 +12,6 @@
 		<link rel="stylesheet" href="../node_modules/vex-js/dist/css/vex.css" />
 		<link rel="stylesheet" href="../node_modules/vex-js/dist/css/vex-theme-os.css" />
 		<link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css" />
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js" integrity="sha384-/y1Nn9+QQAipbNQWU65krzJralCnuOasHncUFXGkdwntGeSvQicrYkiUBwsgUqc1" crossorigin="anonymous"></script>-->
 	</head>
 	<body>
 		<div class="contents">
@@ -74,8 +73,12 @@
 						</div>
 					</div>
 					<div class="details-panel">
-						<div class="editor_holder">
+						<div class="editor_holder" v-show="currentOpenFileExt() != '.png'">
 							<textarea id="editor"></textarea>
+						</div>
+
+						<div class="editor_holder image_holder" v-show="currentOpenFileExt() == '.png'">
+							<img v-bind:src="defaultFile" />
 						</div>
 					</div>
 				</div>
