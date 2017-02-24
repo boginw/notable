@@ -1,4 +1,4 @@
-# <img src="/app/img/logo.png" width="60px" align="center" alt="Notable icon"> Notable, a notable note tool
+# <img src="/app/img/logo.png" width="60px" align="center" alt="Notable icon"> Notable
 
 [![Build Status](https://travis-ci.org/boginw/notable.svg?branch=master)](https://travis-ci.org/boginw/notable)
 
