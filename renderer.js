@@ -78,7 +78,8 @@ let store = {
 	shell:shell,
 	rootDir:rootDir,
 	acceptedfiles : [
-		".md"
+		".md",
+		".png"
 	],
 	openedFile:undefined,
 	unsaved:true
@@ -160,12 +161,6 @@ document.explorerFrontend = new Vue({
 			this.defaultFile = false;
 			this.md.value("");
 		},
-		openFile(path){
-			this.defaultFile = path;
-			this.md.value(file.openFile(path));
-			console.log("opening file: "+path);
-			document.title = "Notable.ink - " + __dirname + "\\." + path;
-		},
 		rename(oldPath, newPath, callback){
 			fs.rename(oldPath, newPath, function (err) {
 				if (err) throw err;
@@ -199,6 +194,9 @@ document.explorerFrontend = new Vue({
 			defaultFile = path;
 		},
 		openFile(path){
+			if(this.pathd.extname(path) == '.png'){
+				
+			}
 			this.defaultFile = path;
 			this.md.value(file.openFile(path));
 			console.log("opening file: "+path);

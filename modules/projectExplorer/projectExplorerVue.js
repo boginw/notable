@@ -8,7 +8,7 @@ module.exports = ({
 		},50);
 	},
 	template: `<ul @contextmenu="rightClick(undefined, $event)">
-					<li 
+					<li
 						v-for="file in filetreesearch"
 						v-bind:style="file.isFolder ? file.noteBook.style : {}"
 						v-bind:draggable="!file.isFolder"
@@ -25,19 +25,28 @@ module.exports = ({
 								class="title"
 								@click="open(file)"
 								@contextmenu="rightClick(file, $event)"
+								@dblclick.native="alert('rename')"
 							>
 								<i 
+									v-if="file.isFolder"
+									v-bind:class="file.open ? 'mi-keyboard-arrow-right' : 'mi-keyboard-arrow-down'"
+									class="mi "
+								></i>
+
+								<i v-if="!file.isFolder" class="mi">v</i>
+								<i 
 									v-if="!file.isFolder"
-									v-bind:class="'file_type_'+file.extension.substring(1)"
-									class="file_icon"
+									v-bind:class="file.extension == '.png' ? 'mi-image' : 'mi-insert-drive-file'"
+									class="mi "
 								></i>
 
 								<i 
 									v-else
-									class="mi mi-folder"
+									v-bind:class="file.open ? 'mi-folder-open' : 'mi-folder'"
+									class="mi"
 								></i>
 
-							{{ file.name }}
+							<span class="titleText">{{ filedisplayname(file) }}</span>
 							</div>
 						</span>
 						<project-explorer v-if="file.open" v-bind:search="search" v-bind:shell="shell" v-bind:document="document" v-bind:acceptedfiles="acceptedfiles" v-bind:path="path+'/'+file.name" v-bind:filetree="file.childrens"></project-explorer>
@@ -63,6 +72,9 @@ module.exports = ({
 		}
 	},
 	methods:{
+		filedisplayname(file){
+			return file.isFolder ? file.name : file.name.substr(0,file.name.length-file.extension.length);
+		},
 		isOpenedFile(file){
 			if(!document.explorerFrontend || !document.explorerFrontend.$data.defaultFile){
 				return false;
@@ -124,7 +136,6 @@ module.exports = ({
 		createFileDialog(file){
 			if(file === undefined) return;
 			let filePath = file[0]+(file[1]? "/"+file[1].name: "");
-
 			vex.dialog.open({
 			    message: 'Enter file name:',
 			    input: [
@@ -228,7 +239,9 @@ module.exports = ({
 			}
 		},
 		open(item){
-			if(!item.isFolder){
+			if(item.extension == ".png"){
+				console.log("png!!!");
+			}else if(!item.isFolder){
 				document.explorerFrontend.openFile(this.path+'/'+item.name);
 				document.openedFile = item;
 				this.updateTree();

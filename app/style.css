@@ -538,3 +538,12 @@ h4 {
     right: 0px;
     bottom: 5px;
 }
+
+.titleText{
+    width: calc(100% - 45px);
+    display: inline-block;
+    vertical-align: bottom;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
