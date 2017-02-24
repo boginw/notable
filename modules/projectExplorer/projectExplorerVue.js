@@ -29,7 +29,7 @@ module.exports = ({
 							>
 								<i 
 									v-if="file.isFolder"
-									v-bind:class="file.open ? 'mi-keyboard-arrow-right' : 'mi-keyboard-arrow-down'"
+									v-bind:class="file.open ? 'mi-keyboard-arrow-down':'mi-keyboard-arrow-right'"
 									class="mi "
 								></i>
 

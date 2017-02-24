@@ -473,12 +473,12 @@ h4 {
 .folders_and_files .open{
     background-color: rgba(34, 184, 235, 0.2);
 }
-
-.folders_and_files ul li:hover{
-    background-color: rgba(34, 184, 235, 0.2);
-}    
+ 
 .folders_and_files .title{
     padding: 5px 8px 5px 0px;
+}
+.folders_and_files .title:hover{
+    background-color: rgba(34, 184, 235, 0.2);
 }
 .folders_and_files>ul>li .fileName{
     color: inherit;
