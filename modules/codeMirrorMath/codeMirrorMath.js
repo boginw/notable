@@ -1,41 +1,35 @@
+var widgets = require('codemirror-widgets');
+var katex = require('katex');
+
 module.exports = function(document, md, rootDir){
-	const regex = /\$\$?(.*?)\$?\$/g;
+	var WidgetMath = widgets.createType({
+	    mixins: [
+	        widgets.mixins.re(/\$([^$]+?)\$/g, function(match) {
+	            return {
+	                props: {
+	                    text: match[1]
+	                }
+	            };
+	        }), 
+	        widgets.mixins.editParagraph()
+	    ],
 
-	document.widgets = [];
+	    createElement: function(widget) {
+	        // Create the spam to replace the formula
+	        var span = document.createElement('span');
 
-	this.checkForMath = function(){	
-		let m;
-		var contents = md.value();
-		var lines = contents.split('\n');
+	        // Render the formula using katex
+	        katex.render(widget.props.text, span)
 
-		var currentScroll = md.codemirror.getScrollerElement().scrollTop;
+	        return span;
+	    }
+	});
 
-		
+	// Create a widgets manager connected to an editor
+	var manager = widgets.createManager(md.codemirror);
 
-		for(var i = 0;i < lines.length;i++){
-			while ((m = regex.exec(lines[i])) !== null) {
-			    // This is necessary to avoid infinite loops with zero-width matches
-			    if (m.index === regex.lastIndex) {
-			        regex.lastIndex++;
-			    }
+	// Connect a type of widget to the manager
+	manager.enable(WidgetMath);
 
-			   	var container = document.createElement("p");
-
-				document.widgets.push(md.codemirror.addLineWidget(i, container, {
-			        coverGutter: true
-			    }));
-			    md.codemirror.refresh();
-
-
-			   	try{
-			    	container.innerHTML = (m[0]+"", katex.renderToString(m[1].replace(/\$/gm,"")));
-			    }catch(ignore){}
-			}
-		}
-
-		md.codemirror.getScrollerElement().scrollTop = currentScroll;
-
-		return m;
-	}
     return this;
 };

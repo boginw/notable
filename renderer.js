@@ -110,7 +110,6 @@ document.explorerFrontend = new Vue({
 				        regex.lastIndex++;
 				    }
 				    try{
-				    	console.log(m[1]);
 				    	plaintext = plaintext.replace(m[0]+"", katex.renderToString(m[1].replace(/\$/gm,"")));
 				    }catch(ignore){
 				    	console.log(ignore);
@@ -123,18 +122,19 @@ document.explorerFrontend = new Vue({
 
 		this.md.cmi = require('../modules/codeMirrorImages/codeMirrorImages.js')(this.document,this.md, this.path);
 		this.md.cmm = require('../modules/codeMirrorMath/codeMirrorMath.js')(this.document,this.md, this.path);
+		
+		//this.md.cmm.checkForMath();
+
 		this.md.codemirror.on('change', editor => {
 			if(!this.supressChange){
-				for (var i = 0; i < document.widgets.length; ++i){
+				/*for (var i = 0; i < document.widgets.length; ++i){
 		    		this.md.codemirror.removeLineWidget(document.widgets[i]);
 			    }
 
-			    document.widgets.length = 0;
-
-
+			    document.widgets.length = 0;*/
 				this.unsaved = true;
 				this.md.cmi.checkForImage();
-				this.md.cmm.checkForMath();
+				//this.md.cmm.checkForMath();
 				clearTimeout(this.saveIntervals);
 				this.saveIntervals = setTimeout(()=>{
 					this.saveCurrentFile();
