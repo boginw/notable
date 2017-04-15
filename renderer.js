@@ -6,6 +6,7 @@ const vex = require('vex-js');
 const path = require('path');
 const katex = require('katex');
 const Vue = require('vue/dist/vue.js');
+window.hljs = require('highlightjs');
 
 if(process.platform == "linux"){
 	cp = require('child_process');
@@ -98,16 +99,19 @@ document.explorerFrontend = new Vue({
 			shortcuts: {
 				drawTable: "Cmd-Alt-T"
 			},
+			renderingConfig: {
+				codeSyntaxHighlighting: true,
+			},
 			previewRender:(plaintext)=>{
 				// Directory placeholder
 				plaintext = plaintext.replace(/{DIR}/gm,this.path);
 
 				// Math placeholder
-				const regex = /\$\$?(.*?)\$?\$/g;
-				while ((m = regex.exec(plaintext)) !== null) {
+				const mathRegex = /\$\$?(.*?)\$?\$/g;
+				while ((m = mathRegex.exec(plaintext)) !== null) {
 				    // This is necessary to avoid infinite loops with zero-width matches
-				    if (m.index === regex.lastIndex) {
-				        regex.lastIndex++;
+				    if (m.index === mathRegex.lastIndex) {
+				        mathRegex.lastIndex++;
 				    }
 				    try{
 				    	plaintext = plaintext.replace(m[0]+"", katex.renderToString(m[1].replace(/\$/gm,"")));
