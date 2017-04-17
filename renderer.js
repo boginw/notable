@@ -155,12 +155,51 @@ document.explorerFrontend = new Vue({
 		console.log(this.defaultFile);
 	},
 	computed:{
-
 		currentOpenFile(){
 			return path.basename(this.defaultFile);
 		}
 	},
 	methods:{
+		savePDF(){
+			if(!(wasPreview = this.md.isPreviewActive())){
+				this.md.togglePreview();
+			}
+
+			if(!(wasFullScreen = this.md.isFullscreenActive())){
+				this.md.toggleFullScreen();
+			}
+
+			if(!wasPreview) this.md.togglePreview();
+			if(!wasFullScreen) this.md.toggleFullScreen();
+
+			setTimeout(()=>{
+				
+				var d = document.createElement("div");
+				d.className = "printToPDF editor-preview editor-preview-active";
+				d.style.position = "initial";
+				d.innerHTML = this.md.options.previewRender(this.md.value());
+				document.body.appendChild(d);
+
+				document.querySelector(".contents").style.display = "none";
+
+				remote.getCurrentWindow().webContents.printToPDF({marginsType: 8, pageSize:"A4"}, (error, data) => {
+					document.querySelector(".contents").style.display = "flex";
+					document.querySelector(".printToPDF.editor-preview.editor-preview-active").outerHTML = "";
+
+					setTimeout(()=>{
+						if (error) throw error;
+						var filter = [{name:"PDF",extensions: ["pdf"]}];
+
+						dialog.showSaveDialog({title: "Save PDF", filters: filter}, (filename)=>{
+							fs.writeFile(filename, data, (error) => {
+								if (error) throw error;
+								console.log('Write PDF successfully.');
+							});
+						});
+					},10);
+				});
+			},250);
+		},
 		currentOpenFileExt(){
 			return path.extname(this.defaultFile);
 		},
