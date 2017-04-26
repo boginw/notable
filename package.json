@@ -1,7 +1,7 @@
 {
   "name": "notable",
   "productName": "Notable",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A minimal markdown application",
   "main": "main.js",
   "scripts": {
