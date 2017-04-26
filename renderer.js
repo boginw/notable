@@ -2,12 +2,19 @@
 const fs = require('fs');
 const {remote, ipcRenderer, desktopCapturer, screen, webFrame} = require('electron')
 const {Menu, MenuItem, app, shell, BrowserWindow, dialog} = remote;
-const vex = require('vex-js');
-const path = require('path');
+const vex   = require('vex-js');
+const path  = require('path');
 const katex = require('katex');
-const Vue = require('vue/dist/vue.js');
+const Vue   = require('vue/dist/vue.js');
 window.hljs = require('highlightjs');
 
+// Custom modules
+const file 	= require('../modules/file/file.js')();
+
+let rootDir = app.getPath('documents')+"/";
+document.__dirname = __dirname;
+
+// Scale app if linux
 if(process.platform == "linux"){
 	cp = require('child_process');
 	var distroRegExp = /NAME="([A-z]+)"/gm;
@@ -23,40 +30,8 @@ if(process.platform == "linux"){
 	}
 }
 
-// Custom modules
-const file 			  = require('../modules/file/file.js')();
-
-let rootDir = app.getPath('documents')+"/";
-document.__dirname = __dirname;
 vex.registerPlugin(require('vex-dialog'));
 vex.defaultOptions.className = 'vex-theme-os';
-console.log(rootDir);
-
-function hasClassName(needle, haystack){
-	return !!haystack && haystack.split(" ").indexOf(needle) != -1;
-}
-
-function linkHandler(){
-	console.log("called");
-	var aTags = document.querySelectorAll("a[href]");
-	var clickBack = function(e){
-		console.log(e);
-		e.preventDefault();
-		shell.openExternal(e.target.href);
-		return false;
-	};
-
-	for (var i = 0; i < aTags.length; i++) {
-		aTags[i].removeEventListener("click", clickBack, false);
-		aTags[i].addEventListener("click", clickBack);
-	}
-}
-
-function init(){
-
-}
-
-init();
 
 Vue.component('projectExplorer', require('../modules/projectExplorer/projectExplorerVue.js'));
 Vue.component('scrnsht',         require('../modules/screenshot/screenshotVue.js'));
@@ -87,8 +62,6 @@ let store = {
 	supressChange: false
 };
 
-document.widgets = [];
-
 document.explorerFrontend = new Vue({
 	el: '.contents',
 	data: store,
@@ -115,30 +88,18 @@ document.explorerFrontend = new Vue({
 				    }
 				    try{
 				    	plaintext = plaintext.replace(m[0]+"", katex.renderToString(m[1].replace(/\$/gm,"")));
-				    }catch(ignore){
-				    	console.log(ignore);
-				    }
+				    }catch(ignore){}
 				}
-
 				return this.md.markdown(plaintext);
 			}
 		});
 
 		this.md.cmi = require('../modules/codeMirrorImages/codeMirrorImages.js')(this.document,this.md, this.path);
 		this.md.cmm = require('../modules/codeMirrorMath/codeMirrorMath.js')(this.document,this.md, this.path);
-		
-		//this.md.cmm.checkForMath();
-
 		this.md.codemirror.on('change', editor => {
 			if(!this.supressChange){
-				/*for (var i = 0; i < document.widgets.length; ++i){
-		    		this.md.codemirror.removeLineWidget(document.widgets[i]);
-			    }
-
-			    document.widgets.length = 0;*/
 				this.unsaved = true;
 				this.md.cmi.checkForImage();
-				//this.md.cmm.checkForMath();
 				clearTimeout(this.saveIntervals);
 				this.saveIntervals = setTimeout(()=>{
 					this.saveCurrentFile();
@@ -172,8 +133,7 @@ document.explorerFrontend = new Vue({
 			if(!wasPreview) this.md.togglePreview();
 			if(!wasFullScreen) this.md.toggleFullScreen();
 
-			setTimeout(()=>{
-				
+			setTimeout(()=>{	
 				var d = document.createElement("div");
 				d.className = "printToPDF editor-preview editor-preview-active";
 				d.style.position = "initial";
@@ -192,7 +152,9 @@ document.explorerFrontend = new Vue({
 
 						dialog.showSaveDialog({title: "Save PDF", filters: filter}, (filename)=>{
 							fs.writeFile(filename, data, (error) => {
-								if (error) throw error;
+								if (error){
+									throw error;
+								}
 								console.log('Write PDF successfully.');
 							});
 						});
@@ -215,9 +177,9 @@ document.explorerFrontend = new Vue({
 		},
 		rename(oldPath, newPath, callback){
 			fs.rename(oldPath, newPath, function (err) {
-				if (err) throw err;
-				console.log('renamed complete');
-
+				if (err){
+					throw err;
+				}
 				callback();
 			});
 		},

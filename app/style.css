@@ -44,6 +44,8 @@ tbody{
 
 .header .logo {
 /*    padding: 0.9rem 1rem 0 1rem;*/
+
+    -webkit-app-region: no-drag;
     padding: 0.4rem 0.5rem 0 0.5rem;
 }
 
