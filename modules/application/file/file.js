@@ -8,7 +8,7 @@ module.exports = function(){
 			let file = fs.readFileSync(fileName);
 			return file.toString();
 		} catch (e) {
-			return "Failed to open file";
+			return "";
 		}
 		return null;
 	}
@@ -18,7 +18,6 @@ module.exports = function(){
 		    if(err) {
 		        return console.log(err);
 		    }
-		    console.log("The file was saved! "+path);
 		});
 	}
 

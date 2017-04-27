@@ -44,6 +44,7 @@ tbody{
 
 .header .logo {
 /*    padding: 0.9rem 1rem 0 1rem;*/
+    -webkit-app-region: no-drag;
     padding: 0.4rem 0.5rem 0 0.5rem;
 }
 
@@ -219,7 +220,6 @@ tbody{
     flex-direction: row;
     padding: 0px;
 }
-
 
 .sidebar {
     background-color: white;
@@ -397,8 +397,15 @@ h4 {
 
 
 
-
-
+.lastMod{
+    font-size: 0.6em;
+}
+.filePrev{
+    font-size: 0.6em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 
 .CodeMirror{
@@ -468,17 +475,20 @@ h4 {
     display:block;
     cursor:pointer;
     user-select: none;
-    border-bottom: 1px solid rgba(230, 237, 244, 0.38);
+    border-bottom: 1px solid rgba(230, 237, 244, 0.99);
 }
 .folders_and_files .open{
-    background-color: rgba(34, 184, 235, 0.2);
+    /*background-color: rgba(34, 184, 235, 0.2);*/
+    background-color: rgb(48, 147, 236);
+    color: white;
 }
  
 .folders_and_files .title{
-    padding: 5px 8px 5px 0px;
+    padding: 8px;
 }
 .folders_and_files .title:hover{
-    background-color: rgba(34, 184, 235, 0.2);
+    background-color: rgba(48, 147, 236, 0.71);
+    color:white;
 }
 .folders_and_files>ul>li .fileName{
     color: inherit;
@@ -554,4 +564,26 @@ h4 {
 .image_holder img{
     max-width:100%;
     max-height: 100%;
+}
+
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #CCC;
+}
+ 
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2); 
+}
+ 
+::-webkit-scrollbar-button {
+    height: 0px;
+    background-color: #CCC;
+}
+ 
+::-webkit-scrollbar-corner {
+    background-color: black;
 }

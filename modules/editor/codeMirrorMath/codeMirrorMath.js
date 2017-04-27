@@ -1,10 +1,11 @@
 var widgets = require('codemirror-widgets');
 var katex = require('katex');
 
-module.exports = function(document, md, rootDir){
+module.exports = function(document, md){
 	var WidgetMath = widgets.createType({
 	    mixins: [
 	        widgets.mixins.re(/\$([^$]+?)\$/g, function(match) {
+
 	            return {
 	                props: {
 	                    text: match[1]
@@ -30,6 +31,24 @@ module.exports = function(document, md, rootDir){
 
 	// Connect a type of widget to the manager
 	manager.enable(WidgetMath);
+
+	this.preview = function(plaintext){
+		//plaintext = plaintext.replace(/{DIR}/gm, this.path);
+
+		// Math placeholder
+		const mathRegex = /\$\$?(.*?)\$?\$/g;
+		while ((m = mathRegex.exec(plaintext)) !== null) {
+		    // This is necessary to avoid infinite loops with zero-width matches
+		    if (m.index === mathRegex.lastIndex) {
+		        mathRegex.lastIndex++;
+		    }
+		    try{
+		    	plaintext = plaintext.replace(m[0]+"", katex.renderToString(m[1].replace(/\$/gm,"")));
+		    }catch(ignore){}
+		}
+		return plaintext;
+	}
+
 
     return this;
 };

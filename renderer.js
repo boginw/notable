@@ -6,88 +6,49 @@ const vex = require('vex-js');
 const path = require('path');
 const katex = require('katex');
 const Vue = require('vue/dist/vue.js');
+const diff_match_patch = require('googlediff');
+const request = require("request")
 window.hljs = require('highlightjs');
 
-if(process.platform == "linux"){
-	cp = require('child_process');
-	var distroRegExp = /NAME="([A-z]+)"/gm;
-	var releaseString = eval("String.fromCharCode("+cp.execSync("cat /etc/*-release").join(",")+")");
-	var distro = distroRegExp.exec(releaseString);
-	if(distro.length && distro[1] == "Ubuntu"){
-		var scalingArray = cp.execSync("gsettings get org.gnome.desktop.interface text-scaling-factor");
-		var scaling = Number.parseFloat(eval("String.fromCharCode("+scalingArray.join(",")+")"));
-		webFrame.setZoomFactor(scaling);
-		console.log(`You're running Linux (${distro[1]}) \
-					 with text-scaling-factor set to ${scaling}\
-					 So we've scaled the Window to the same scaling.`);
-	}
-}
-
 // Custom modules
-const file 			  = require('../modules/file/file.js')();
+const zoomFactor = require("../modules/application/zoomFactor/zoomFactor.js")();
+const file = require('../modules/application/file/file.js')();
 
 let rootDir = app.getPath('documents')+"/";
 document.__dirname = __dirname;
+
 vex.registerPlugin(require('vex-dialog'));
 vex.defaultOptions.className = 'vex-theme-os';
-console.log(rootDir);
 
-function hasClassName(needle, haystack){
-	return !!haystack && haystack.split(" ").indexOf(needle) != -1;
-}
-
-function linkHandler(){
-	console.log("called");
-	var aTags = document.querySelectorAll("a[href]");
-	var clickBack = function(e){
-		console.log(e);
-		e.preventDefault();
-		shell.openExternal(e.target.href);
-		return false;
-	};
-
-	for (var i = 0; i < aTags.length; i++) {
-		aTags[i].removeEventListener("click", clickBack, false);
-		aTags[i].addEventListener("click", clickBack);
-	}
-}
-
-function init(){
-
-}
-
-init();
-
-Vue.component('projectExplorer', require('../modules/projectExplorer/projectExplorerVue.js'));
-Vue.component('scrnsht',         require('../modules/screenshot/screenshotVue.js'));
-Vue.component('wbuttons',        require('../modules/windowButtons/windowButtonsVue.js'));
+Vue.component('projectExplorer', require('../modules/application/projectExplorer/projectExplorerVue.js'));
+Vue.component('scrnsht',         require('../modules/application/screenshot/screenshotVue.js'));
+Vue.component('wbuttons',        require('../modules/application/windowButtons/windowButtonsVue.js'));
 
 let store = {
 	SimpleMDE: require('simplemde'),
 	document: document,
 	BrowserWindow: BrowserWindow,
 	remote: remote,
-	fs: fs,
 	pathd: path,
 	path : rootDir+'notes',
 	filetree: [],
 	isWindows: true,
-	search: "",
 	md: false,
 	defaultFile: rootDir+"notes/init.md",
 	saveIntervals: null,
 	shell:shell,
 	rootDir:rootDir,
+	openedFile:undefined,
+	unsaved:true,
+	supressChange: false,
+	dmp: new diff_match_patch(),
+	tempOld: null,
+	search: "",
 	acceptedfiles : [
 		".md",
 		".png"
-	],
-	openedFile:undefined,
-	unsaved:true,
-	supressChange: false
+	]
 };
-
-document.widgets = [];
 
 document.explorerFrontend = new Vue({
 	el: '.contents',
@@ -101,47 +62,28 @@ document.explorerFrontend = new Vue({
 			},
 			renderingConfig: {
 				codeSyntaxHighlighting: true,
-			},
-			previewRender:(plaintext)=>{
-				// Directory placeholder
-				plaintext = plaintext.replace(/{DIR}/gm,this.path);
-
-				// Math placeholder
-				const mathRegex = /\$\$?(.*?)\$?\$/g;
-				while ((m = mathRegex.exec(plaintext)) !== null) {
-				    // This is necessary to avoid infinite loops with zero-width matches
-				    if (m.index === mathRegex.lastIndex) {
-				        mathRegex.lastIndex++;
-				    }
-				    try{
-				    	plaintext = plaintext.replace(m[0]+"", katex.renderToString(m[1].replace(/\$/gm,"")));
-				    }catch(ignore){
-				    	console.log(ignore);
-				    }
-				}
-
-				return this.md.markdown(plaintext);
 			}
 		});
 
-		this.md.cmi = require('../modules/codeMirrorImages/codeMirrorImages.js')(this.document,this.md, this.path);
-		this.md.cmm = require('../modules/codeMirrorMath/codeMirrorMath.js')(this.document,this.md, this.path);
-		
-		//this.md.cmm.checkForMath();
+		this.loadModules();
 
 		this.md.codemirror.on('change', editor => {
 			if(!this.supressChange){
-				/*for (var i = 0; i < document.widgets.length; ++i){
-		    		this.md.codemirror.removeLineWidget(document.widgets[i]);
-			    }
-
-			    document.widgets.length = 0;*/
 				this.unsaved = true;
-				this.md.cmi.checkForImage();
-				//this.md.cmm.checkForMath();
 				clearTimeout(this.saveIntervals);
 				this.saveIntervals = setTimeout(()=>{
 					this.saveCurrentFile();
+					var patches = this.dmp.patch_make(this.tempOld,this.md.value());
+					// this is for later
+					/*if(patches){
+						request({ 
+							url: "http://laraveladventure.dev/api/notes/1/changes", 
+							method: 'PUT', 
+							json: {changes: patches.toString()}
+						}, ()=>{
+							this.tempOld = this.md.value();
+						});
+					}*/
 				},1500);
 			}else{
 				this.unsaved = false;
@@ -152,7 +94,6 @@ document.explorerFrontend = new Vue({
 		this.md.toolbarElements.guide.outerHTML = "";
 		this.md.value(this.openFile(this.defaultFile));
 		document.md = this.md;
-		console.log(this.defaultFile);
 	},
 	computed:{
 		currentOpenFile(){
@@ -160,20 +101,57 @@ document.explorerFrontend = new Vue({
 		}
 	},
 	methods:{
+		loadModules(){
+			// Get the path to the modules/editor folder
+			let editorModulesFolder = path.join(document.__dirname,"../modules/editor");
+			// Get all folders in modules/editor
+			let folders = fs.readdirSync(editorModulesFolder)
+				.filter(file => fs.statSync(path.join(editorModulesFolder, file)).isDirectory())
+			// Store modules inside md
+			this.md.modules = [];
+
+			console.log("Modules found: ",folders);
+			
+			for(var i=0; i < folders.length; i++){
+				// Get path to main js file
+				let pathToModule = path.join(editorModulesFolder,folders[i],folders[i]+".js");
+				
+				// Instantiate and store module 
+				this.md.modules.push(
+					require(pathToModule)(this.document,this.md)
+				);
+			}
+
+			// Overwrite previewRender
+			this.md.options.previewRender = (plaintext)=>{
+				// Directory placeholder
+				
+				for(var i=0; i < this.md.modules.length; i++){
+					// All modules have a preview function, to render
+					// their their function to the preview view.
+					plaintext = this.md.modules[i].preview(plaintext);
+				}
+
+				// Parse the rest through markdown
+				return this.md.markdown(plaintext);
+			};
+		},
 		savePDF(){
+			// If editor isn't in preview mode, then put it in preview mode
 			if(!(wasPreview = this.md.isPreviewActive())){
 				this.md.togglePreview();
 			}
 
+			// If editor isn't in fullscreen mode, then put it in fullscreen mode
 			if(!(wasFullScreen = this.md.isFullscreenActive())){
 				this.md.toggleFullScreen();
 			}
 
+			// Toggle back if necessary
 			if(!wasPreview) this.md.togglePreview();
 			if(!wasFullScreen) this.md.toggleFullScreen();
 
 			setTimeout(()=>{
-				
 				var d = document.createElement("div");
 				d.className = "printToPDF editor-preview editor-preview-active";
 				d.style.position = "initial";
@@ -224,7 +202,6 @@ document.explorerFrontend = new Vue({
 		saveCurrentFile(){
 			this.unsaved = false;
 			this.saveFile(this.defaultFile, this.md.value());
-			this.md.cmi.checkForImage();
 		},
 		saveFile(path, contents){
 			if(!path){
@@ -251,6 +228,7 @@ document.explorerFrontend = new Vue({
 			}else{
 				this.supressChange = true;
 				this.md.value(file.openFile(path));
+				this.tempOld = this.md.value();
 			}
 
 			this.defaultFile = path;

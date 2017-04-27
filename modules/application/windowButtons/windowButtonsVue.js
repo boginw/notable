@@ -15,7 +15,7 @@ module.exports = ({
 	},
 	template: `
 				<div>
-					<div class="logo" v-if="(left && isWindows) || (!left && !isWindows)"><img src="img/logo.png" width="30" height="30"></div>
+					<div class="logo" v-if="(left && isWindows) || (!left && !isWindows)"><img src="img/logo.png" width="30" height="30" @click="handleLogo()"></div>
 
 					<div v-bind:class="{'windows-buttons': isWindows, buttons: !isWindows}" v-if="(isWindows && !left) || (left && !isWindows)">
 						<div class="button-minimize enabled" v-if="isWindows" @click="handleMinimize()" v-bind:class="{'windows-button': isWindows, button: !isWindows}">
@@ -31,6 +31,15 @@ module.exports = ({
 					</div>
 				</div>`,
 	methods:{
+		handleLogo() {
+			if(document.md.isPreviewActive()){
+				document.md.togglePreview();
+			}
+
+			if(document.md.isFullscreenActive()){
+				document.md.toggleFullScreen();
+			}
+		},
 		handleClose() {
 			if (this.isWindows) {
 				remote.getCurrentWindow().close();
