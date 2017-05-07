@@ -17,7 +17,7 @@ function getInstallerConfig () {
   const outPath = path.join(rootPath, 'out')
 
   return Promise.resolve({
-    appDirectory: path.join(outPath, 'notable-win32-ia32'),
+    appDirectory: path.join(outPath, 'Notable-win32-ia32'),
     iconUrl: "https://raw.githubusercontent.com/boginw/notable/master/app/img/logo.ico",
     loadingGif: path.join(rootPath, 'app', 'img', 'loading_inst.gif'),
     noMsi: true,

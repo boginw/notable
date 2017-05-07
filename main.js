@@ -50,8 +50,10 @@ function createWindow () {
 		frame: false
 	});
 
-	/*let vuePath = `C:\\Users\\hamburger\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Extensions\\${vueChromeId}\\3.0.8_0`;
-    BrowserWindow.addDevToolsExtension(vuePath);*/
+	//let vuePath = `C:\\Users\\hamburger\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Extensions\\${vueChromeId}\\3.0.8_0`;
+    //let vuePath = "/home/hamburger/.config/google-chrome/Default/Extensions/nhdogjmejiglipccpnnnanhbledajbpd/3.1.2_0/";
+    //BrowserWindow.addDevToolsExtension(vuePath);
+
 
 
 	// and load the index.html of the app.

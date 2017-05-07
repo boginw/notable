@@ -239,26 +239,9 @@ tbody{
     display: flex;
     border-bottom: 1px solid transparent;
     transition: border-bottom 0.25s;
+    flex-direction: column;
 }
 
-.sidebar .sidebar-header input {
-    width: 100%;
-    border: none;
-    border-bottom: solid 2px #c9c9c9;
-    transition: border 0.3s;
-    padding: 4px;
-    -webkit-box-shadow: 0 0 0px 1000px white inset;
-}
-
-.sidebar .sidebar-header input:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0px 1000px red inset;
-}
-
-.sidebar .sidebar-header input:focus {
-    border-bottom: solid 2px #969696;
-    box-shadow: 0 0 0 1000px white inset;
-    outline: none;
-}
 
 .sidebar .sidebar-header h4 {
     align-self: flex-start;
@@ -399,17 +382,20 @@ h4 {
 
 .lastMod{
     font-size: 0.6em;
+    margin-bottom: 5px;
 }
 .filePrev{
-    font-size: 0.6em;
+    font-size: 0.8em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 
 .CodeMirror{
-	height: calc(100% - 111px);
+    height: calc(100% - 111px);
 }
 
 .left_panel{
@@ -511,17 +497,6 @@ h4 {
     padding-left: 25px;
 }
 
-.searchInput input[type="text"] {
-  padding: 10px;
-  border: none;
-  border-bottom: solid 2px #c9c9c9;
-  transition: border 0.3s;
-    width: calc(100% - 20px);
-}
-.searchInput input[type="text"]:focus,
-.searchInput input[type="text"].focus {
-  border-bottom: solid 2px #969696;
-}
 
 .CodeMirror img, .editor-preview-side img{
     max-width: 100%;
@@ -586,4 +561,227 @@ h4 {
  
 ::-webkit-scrollbar-corner {
     background-color: black;
+}
+
+/*.input[type=text] {
+    width: 130px;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+    width: 300px;
+    vertical-align: middle;
+    white-space: nowrap;
+    position: relative;
+}*/
+
+/* When the input field gets focus, change its width to 100% */
+/*input[type=text]:focus {
+    width: 100%;
+}*/
+.settings{
+    border-bottom: 1px solid rgb(221, 221, 221);
+    background-color: #f6f8fb;
+    height: 27px;
+
+}
+
+.search{
+    vertical-align: middle;
+    white-space: nowrap;
+    position: absolute;
+    right: 0px;
+}
+
+.search .icon{
+    position: absolute;
+    right: 7px;
+    margin-left: 4px;
+    margin-top: 4px;
+    z-index: 1;
+    color: #4f5b66;
+}
+
+.search input#search{
+    width: 0px;
+    height: 25px;
+    background: #f6f8fb;/*#2b303b;*/
+    border: none;
+    font-size: 10pt;
+    float: right;
+    padding-right: 26px;
+    padding-left: 5px;
+    border-radius: 5px;
+    color: #fff;
+    transition: width .55s ease, background .55s ease, color .55s ease;
+}
+
+.search input#search:focus, .search input#search:active{
+    outline:none;
+    width: calc(100% - 10px);
+    background: #fdfdfd;
+    color: #333;
+}
+ 
+.search:hover input#search{
+    width: calc(100% - 10px);
+    background: #fdfdfd;
+    color: #333;
+}
+ 
+.search:hover .icon{
+  color: #93a2ad;
+}
+
+.sort{
+    float: left;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.sort i{
+    font-size: 22px;
+    line-height: 28px;
+}
+
+.sort i.separator{
+    display: inline-block;
+    width: 0;
+    border-left: 1px solid #d9d9d9;
+    border-right: 1px solid #fff;
+    color: transparent;
+    text-indent: -10px;
+    margin: 0 6px;
+}
+
+.settings.navigation{
+    color: #22b8eb;
+}
+
+.pathItem.home{
+    padding-top: 1px;
+    padding-left: 0px;
+}
+
+.pathItem{
+    cursor: pointer;
+    float: left;
+    line-height: 29px;
+    padding-left: 8px;
+}
+
+.pathItem:after {
+    content: '';
+    margin-top: 3px;
+    margin-left: -6px;
+    float: right;
+    width: 19px;
+    height: 19px;
+    background: rgba(255, 255, 255, 0);
+    border-right: 1px solid #CAD5E0;
+    border-bottom: 1px solid #CAD5E0;
+    -moz-transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+}
+
+.settings.navigation .seperator:before{
+    content: '>';
+    
+}
+
+.settings.navigation .seperator{
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 21px;
+}
+
+
+
+/*.sidebar .sidebar-header input {
+    width: 100%;
+    border: none;
+    border-bottom: solid 2px #c9c9c9;
+    transition: border 0.3s;
+    padding: 4px;
+    -webkit-box-shadow: 0 0 0px 1000px white inset;
+}
+
+.sidebar .sidebar-header input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px red inset;
+}
+
+.sidebar .sidebar-header input:focus {
+    border-bottom: solid 2px #969696;
+    box-shadow: 0 0 0 1000px white inset;
+    outline: none;
+}*/
+
+/*.searchInput input[type="text"] {
+  padding: 10px;
+  border: none;
+  border-bottom: solid 2px #c9c9c9;
+  transition: border 0.3s;
+    width: calc(100% - 20px);
+}
+.searchInput input[type="text"]:focus,
+.searchInput input[type="text"].focus {
+  border-bottom: solid 2px #969696;
+}*/
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 18px;
+  float: left;
+  margin: 5px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 13px;
+  width: 10px;
+  left: 2px;
+  bottom: 4px;
+  top: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(16px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }

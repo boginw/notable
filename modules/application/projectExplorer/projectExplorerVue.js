@@ -1,16 +1,12 @@
 const ta = require('time-ago')();
-const showFilePreview = false;
-const sortByModified = true;
+const fileOp = require('../file/file.js')();
+const showFilePreview = true;
+
 
 module.exports = ({
-	props:['document','path','acceptedfiles','shell','search'],
+	props:['document','rootdir','acceptedfiles','shell','search','sortalpha'],
 	created(){
-		// if this is root
-		this.filetree = this.getDirectoriesInPath(this.path);
-
-		setTimeout(()=>{
-			this.updateTree();	
-		},50);
+		this.path = this.rootdir;
 	},
 	template: `<ul @contextmenu="rightClick(undefined, $event)">
 					<li
@@ -33,12 +29,6 @@ module.exports = ({
 								@dblclick.native="alert('rename')"
 							>
 								<i 
-									v-if="file.stat.isDirectory()"
-									v-bind:class="file.open ? 'mi-keyboard-arrow-down':'mi-keyboard-arrow-right'"
-									class="mi "
-								></i>
-
-								<i 
 									v-if="!file.stat.isDirectory()"
 									v-bind:class="file.extension == '.png' ? 'mi-image' : 'mi-insert-drive-file'"
 									class="mi "
@@ -50,125 +40,150 @@ module.exports = ({
 									class="mi"
 								></i>
 
-								<span class="titleText">{{ filedisplayname(file) }}</span>
-								<div class="lastMod">{{ lastModified(file.stat.mtime) }}</div>
-								<div class="filePrev" v-bind:ref="i">{{ filePreview(file) }}</div>
+								<span class="titleText">{{ fileDisplayName(file) }}</span>
+								
+								<div class="fileDetails" v-if="!file.stat.isDirectory()">
+									<div class="lastMod">{{ lastModified(file.stat.mtime) }}</div>
+									<div class="filePrev">{{ file.preview }}</div>
+								</div>
 							</div>
 						</span>
-						<project-explorer v-if="file.open" v-bind:search="search" v-bind:shell="shell" v-bind:document="document" v-bind:acceptedfiles="acceptedfiles" v-bind:path="path+'/'+file.name" v-bind:filetree="file.childrens"></project-explorer>
 					</li>
 				</ul>`,
 	computed:{
+		/**
+		 * Loads the fileTree for current folder,
+		 * sorts it if needed, and fetches file
+		 * preview, and filters it for search if
+		 * necessary
+		 * 
+		 * @return {array} array of files
+		 */
 		filetreesearch(){
+			// Get the files in current directory
+			this.updateTree();
+			
+			// Sorting
+			if(this.sortalpha){
+				this.filetree = this.filetree.sort((a, b)=>{
+					if(a.stat.isDirectory()){
+						return -1;
+					}
+					return b.stat.mtime.getTime() - a.stat.mtime.getTime();
+				});
+			}else{
+				this.filetree = this.filetree.sort();
+			}
+
+			// Fetch file previews
+			this.filetree.forEach((file) => {
+				// Don't fetch preview if folder, or preview is turnded off or this is an image
+				if(file.stat.isDirectory() || !showFilePreview || file.extension == '.png'){
+					return;
+				}
+
+				// Set the preview
+				file.preview = fileOp.filePreview(this.pathToThis(file));
+			});
+
+			// Search filter
 			return this.filetree.filter((file)=>{
 				if(this.search == ""){
 					file.open = false;
 					file.childrens = [];
 					return true;
 				}else{
-					if(file.stat.isDirectory()){
-						if(!file.open){
-							this.open(file);
-						}
-						return true;
-					}
 					return file.name.toLowerCase().indexOf(this.search.toLowerCase()) != -1;
 				}
 			});
 		},
-
 	},
 	methods:{
-		filedisplayname(file){
-			return file.stat.isDirectory() ? file.name : file.name.substr(0,file.name.length-file.extension.length);
+		/**
+		 * Strips extensions of files and leaves 
+		 * directories alone
+		 * 
+		 * @param  {file} 	 file 	file from getDirectoriesInPath
+		 * @return {string}	  	Filename without extension
+		 */
+		fileDisplayName(file){
+			return file.stat.isDirectory() ? file.name : 
+				file.name.substr(0,file.name.length-file.extension.length);
 		},
-		filePreview(file){
-			if(file.stat.isDirectory() || !this.showFilePreview){
-				return;
-			}
-			let bufferLength = 100;
-			fs.open(path.join(this.path,file.name), 'r', (status, fd)=>{
-				if (status) {
-					console.log(status.message);
-					return;
-				}
-				var buffer = new Buffer(new Array(bufferLength));
-				fs.read(fd, buffer, 3, bufferLength - 5, 0, (err, num)=>{
-					this.$refs[this.filetree.indexOf(file)][0].innerText = String(buffer).replace(/\n/gm," ");
-				});
-			});
-		},
+		/**
+		 * Returns easily readable dates relative to
+		 * current date. Fx. 1 day ago, 3 weeks ago
+		 * 
+		 * @param  {string} dateString string that can be 
+		 *							 formatted with Date
+		 * @return {string}			Easily readable date 
+		 *							 string
+		 */
 		lastModified(dateString){
 			return ta.ago(new Date(dateString));
 		},
 		isOpenedFile(file){
-			if(!document.explorerFrontend || !document.explorerFrontend.$data.defaultFile){
+			if(!store.defaultFile){
 				return false;
 			}else{
-				return this.path +"/"+ file.name == document.explorerFrontend.defaultFile
+				return this.pathToThis(file.name) == store.defaultFile
 			}
 		},
 		renameDialog(file, isFile){
-			let filePath = file[0]+"/"+file[1].name;
+			this.currentRight = false;
+			let filePath = this.pathToThis(file);
 			let fileOrFolder = !!isFile ? "file" : "folder";
 			vex.dialog.open({
-			    message: `Enter ${fileOrFolder} name:`,
-			    input: [
-			        `<input name="fileName" type="text" placeholder="${fileOrFolder} name" required value="${file[1].name}" />`
-			    ].join(''),
-			    callback: (data)=>{
-			        if (data){
-			        	document.explorerFrontend.rename(filePath, file[0]+"/"+data.fileName,()=>{
-			        		this.filetree = this.getDirectoriesInPath(this.path);
-			        	});
-			        }
-			    }
+				message: `Enter ${fileOrFolder} name:`,
+				input: [
+					`<input name="fileName" type="text" placeholder="${fileOrFolder} name" required value="${file.name}" />`
+				].join(''),
+				callback: (data)=>{
+					if (data){
+						document.explorerFrontend.rename(filePath, this.pathToThis(data.fileName),()=>{
+							this.updateTree(this.path);
+						});
+					}
+				}
 			});
 		},
 		createFolderDialog(folder){
-			let newPath;
-			if(folder === undefined){
-				newPath = path;
-			}else{
-				if(folder[1]){
-					newPath = folder[0]+"/"+folder[1].name+"/";
-				}else{
-					newPath = folder[0]+"/";
-				}
-			}
-
+			this.currentRight = false;
+			let dirPath = this.pathToThis(folder);
 			vex.dialog.open({
-			    message: 'Enter folder name:',
-			    input: [
-			        '<input name="folderName" type="text" placeholder="Folder name" required />',
-			        '<input name="folderBackground" type="color" value="#FFF" required />',
-			        '<input name="folderColor" type="color" value="#000" required />',
-			    ].join(''),
-			    callback: (data)=>{
-			        if (data)  {
-			        	this.createFolderProject(newPath + data.folderName, {
-			        		backgroundColor: data.folderBackground,
-			        		color: data.folderColor
-			        	});
-			        }
-			    }
+				message: 'Enter folder name:',
+				input: [
+					'<input name="folderName" type="text" placeholder="Folder name" required />',
+					'<input name="folderBackground" type="color" value="#FFF" required />',
+					'<input name="folderColor" type="color" value="#000" required />',
+				].join(''),
+				callback: (data)=>{
+					if (data)  {
+						this.createFolderProject(path.join(dirPath, data.folderName), {
+							backgroundColor: data.folderBackground,
+							color: data.folderColor
+						});
+					}
+				}
 			});
 		},
 		createFileDialog(file){
-			if(file === undefined) return;
-			let filePath = file[0]+(file[1]? "/"+file[1].name: "");
+			this.currentRight = false;
+			let filePath = this.pathToThis(file);
+
 			vex.dialog.open({
-			    message: 'Enter file name:',
-			    input: [
-			        '<input name="fileName" type="text" placeholder="file name" required />'
-			    ].join(''),
-			    callback: (data)=>{
-			        if (data){
-			        	document.explorerFrontend.saveFile(filePath +"/"+ data.fileName + ".md", "");
-			        	this.filetree = this.getDirectoriesInPath(this.path);
-			        	//this.open(filePath + data.fileName);
-			        }
-			    }
+				message: 'Enter file name:',
+				input: [
+					'<input name="fileName" type="text" placeholder="file name" required />'
+				].join(''),
+				callback: (data)=>{
+					if (data){
+						console.log(file,filePath,data);
+						document.explorerFrontend.saveFile(path.join(filePath, data.fileName + ".md"), "");
+						this.updateTree(this.path);
+						//this.open(filePath + data.fileName);
+					}
+				}
 			});
 		},
 		createFolderProject(path, style){
@@ -177,54 +192,7 @@ module.exports = ({
 				style: style,
 				icon: false
 			}));
-			this.filetree = this.getDirectoriesInPath(this.path);
-		},
-		filterFiles(file){
-			if(this.acceptedfiles == undefined){
-				return false;
-			}
-			return this.acceptedfiles.indexOf(file.extension) != -1;
-		},
-		getDirectoriesInPath(dirPath){
-			let files = fs.readdirSync(dirPath);
-			let tree = [];
-	        let folders = [];
-
-			for(i=0; i <= (files.length-1); i++){
-				let file = {
-					'name': files[i],
-					'extension': (this.pathd.extname(files[i])) ? this.pathd.extname(files[i]) : (files[i].substring(0, 4) == ".git") ? '.git' :'.default',
-					'stat': (fs.statSync(path.join(dirPath, files[i]))),
-					'open': false,
-					'childrens': []
-				}
-
-	            if(file.stat.isDirectory()){
-					try {
-	            		file.noteBook = JSON.parse(fileComp.openFile(dirPath+"/"+file.name+"/folder.json"));
-					} catch(e) {
-						file.noteBook = {style:{}};
-					}
-
-	                folders.push(file);
-	            }else if(this.filterFiles(file)){
-				    tree.push(file);
-	            }
-
-			}
-
-			// Sorting
-			if(sortByModified){
-				tree = tree.sort((a, b)=>{
-					return b.stat.mtime.getTime() - a.stat.mtime.getTime();
-				});
-			}else{
-				tree = tree.sort();
-			}
-
-	        Array.prototype.unshift.apply(tree, folders);
-
-			return tree;
+			this.updateTree(this.path);
 		},
 		dragstart_handler(event,file){
 			if(file.stat.isDirectory()){
@@ -237,11 +205,15 @@ module.exports = ({
 		drop_handler(ev,file) {
 			if(file.stat.isDirectory()){
 				document.explorerFrontend.rename(this.path+"/"+this.beingDraged.name, this.path+"/"+file.name+"/"+this.beingDraged.name,()=>{
-					this.filetree = this.getDirectoriesInPath(this.path);
+					this.updateTree(this.path);
 				});
 			}
 		},
-		updateTree(){
+		updateTree(path){
+			let pathToGoto = path ? path : this.pathToThis();
+			this.filetree = fileOp.filesInDirectory(pathToGoto, this.acceptedfiles);
+		},
+		refreshTree(){
 			var tempTree = this.filetree;
 			this.filetree = null;
 			this.filetree = tempTree;
@@ -257,7 +229,8 @@ module.exports = ({
 				return;
 			}
 
-			this.currentRight = file || {empty:true};
+			this.currentRight = file || { empty: true };
+
 			if(this.currentRight.stat.isDirectory()){
 				this.ProjectExplorerContext.folder.popup(remote.getCurrentWindow());
 			}else{
@@ -266,40 +239,103 @@ module.exports = ({
 		},
 		open(item){
 			if(!item.stat.isDirectory()){
-				document.explorerFrontend.openFile(this.path+'/'+item.name);
+				document.explorerFrontend.openFile(item.name);
 				document.openedFile = item;
-				this.updateTree();
+				this.refreshTree();
 			}else if(item.open==false){
-				item.childrens = this.getDirectoriesInPath(this.path+'/'+item.name);
+				store.foldertree.push(item.name);
+				this.updateTree(this.path+'/'+item.name);
 				item.open = true;
 			}else{
 				item.childrens = [];
 				item.open = false;
 			}
 		},
-		deleteFile(file){
-			if(file === undefined) return;
-			let filePath = file[0]+(file[1]? "/"+file[1].name: "");
-			if(document.openedFile && document.openedFile.name == file[1].name){
-				alert("Cannot delete opened file");
-				return;
+		/**
+		 * Finds the path to the given file or directory
+		 * 
+		 * @param  {string or file}   pathTo	thing to find the path to
+		 * @return {string}						path to given thing
+		 */
+		pathToThis(pathTo){
+			// if pathTo is set
+			if(pathTo){
+				// If pathTo is a file
+				if(typeof(pathTo) != "string" && pathTo.name != undefined){
+					pathTo = pathTo.name || "";
+				}
+			// Get path to current dir then
+			}else{
+				pathTo = "";
 			}
-			this.fs.unlinkSync(filePath);
-			this.filetree = this.getDirectoriesInPath(this.path);
+
+			// TODO: this needs to be local
+			return path.join(store.root,store.foldertree.join('/'),pathTo);
+		},
+		/**
+		 * Search and DESTROY! deletes a file or
+		 * folder
+		 * 
+		 * @param  {object} file 	file object to be deleted
+		 *							eiher a folder or file
+		 */
+		deleteFile(file){
+			// We need to delete something
+			if(file === undefined) return;
+			// Get path to something
+			let dirPath = this.pathToThis(file);
+
+			// Incase it is a directory, here's a recursive
+			// folder deletion function
+			let deleteFolderRecursive = function(path) {
+				if( fs.existsSync(path) ) {
+					fs.readdirSync(path).forEach(function(file,index){
+						var curPath = path + "/" + file;
+						if(fs.lstatSync(curPath).isDirectory()) { // recurse
+							deleteFolderRecursive(curPath);
+						} else { // delete file
+							fs.unlinkSync(curPath);
+						}
+					});
+					fs.rmdirSync(path);
+				}
+			};
+
+			// Make user confirm the deletion
+			vex.dialog.confirm({
+				message: 'Are you absolutely sure you want to destroy the file or folder? This cannot be undone', 
+				callback: (value) => {
+					// User confirmed
+					if (value) {
+						// Delete directory
+						if(file.stat.isDirectory()){
+							deleteFolderRecursive(dirPath);
+						// Delete file
+						}else{
+							this.fs.unlinkSync(dirPath);
+						}
+						// Reset filetree
+						this.updateTree(this.path);
+					}
+				},
+			});
+
+			// Reset right click item
+			this.currentRight = false;
 		},
 		folders(){
 			let r = {};
 
-			r.new = (folder) => {
-				this.createFolderDialog(folder);
+			r.new = (e) => {
+				this.createFolderDialog(this.currentRight);
 			}
 
-			r.rename = (folder) => {
-				this.renameDialog(folder, false);
+			r.rename = (e) => {
+				this.renameDialog(this.currentRight, false);
 			}
 
-			r.delete = (initPath) => {
-				console.log("Delete this folder: "+initPath);
+			r.delete = (e) => {
+				this.deleteFile(this.currentRight);
 			}
 
 			return r;
@@ -307,18 +343,16 @@ module.exports = ({
 		files(){
 			let r = {};
 
-			r.new = (file) => {
-				if(file[1] == false) console.trace();
-				this.createFileDialog(file);
+			r.new = (e) => {
+				this.createFileDialog(this.currentRight);
 			}
 
-			r.rename = (file) => {
-				if(file[1] == false) console.trace();
-				this.renameDialog(file, true);
+			r.rename = (e) => {
+				this.renameDialog(this.currentRight, true);
 			}
 
-			r.delete = (initPath) => {
-				this.deleteFile(initPath);
+			r.delete = (e) => {
+				this.deleteFile(this.currentRight);
 			}
 
 			return r;
@@ -328,7 +362,6 @@ module.exports = ({
 		return {
 			isRootRight: false,
 			filetree:false,
-			pathd: require("path"),
 			fs: require("fs"),
 			openedFile: false,
 			currentRight: false,
@@ -338,43 +371,38 @@ module.exports = ({
 					{
 						label: 'New Note',
 						role: 'new',
-						click: (e)=>{
-							this.files().new([this.path,this.currentRight]);
-						}
+						click: this.files().new,
 					}, {
 						type: 'separator',
 					}, {
 						label: 'New Folder',
 						role: 'newFolder',
-						click: (e)=>{
-							this.folders().new([this.path,this.currentRight]);
-						}
+						click: this.folders().new,
+						
 					}
 				]),
 				folder: Menu.buildFromTemplate([
 					{
 						label: 'New Note',
 						role: 'new',
-						click: ()=>{
-							this.files().new([this.path,this.currentRight]);
-						}
+						click: this.files().new,
 					}, {
 						label: 'Rename',
 						role: 'rename',
-						click: ()=>{
-							this.folders().rename([this.path,this.currentRight]);
-						}
+						click: this.folders().rename,
+						
 					}, {
 						type: 'separator',
 					}, {
 						label: 'New Folder',
 						role: 'newFolder',
-						click: (e)=>{
-							this.folders().new([this.path,this.currentRight]);
-						}
+						click: this.folders().new,
+						
 					}, {
 						label: 'Delete Folder',
 						role: 'delFolder',
+						click: this.folders().delete,
+						
 					}, {
 						type: 'separator',
 					}, {
@@ -386,22 +414,18 @@ module.exports = ({
 					{
 						label: 'Rename',
 						role: 'rename',
-						click: ()=>{
-							this.files().rename([this.path,this.currentRight]);
-						}
+						click: this.files().rename,
 					}, {
 						label: 'Delete',
 						role: 'deleteFile',
-						click: ()=>{
-							this.files().delete([this.path,this.currentRight]);
-						}
+						click: this.files().delete,
 					}, {
 						type: 'separator',
 					}, {
 						label: 'Open Containing Folder',
 						role: 'openfolder',
 						click:()=>{
-							this.shell.showItemInFolder(this.path+this.pathd.sep+this.currentRight.name);
+							this.shell.showItemInFolder(this.pathToThis(this.currentRight.name));
 						}
 					}
 				])

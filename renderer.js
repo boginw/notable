@@ -29,12 +29,12 @@ let store = {
 	document: document,
 	BrowserWindow: BrowserWindow,
 	remote: remote,
-	pathd: path,
-	path : rootDir+'notes',
-	filetree: [],
+	path: path,
+	root : rootDir+'notes',
+	foldertree: [],
 	isWindows: true,
 	md: false,
-	defaultFile: rootDir+"notes/init.md",
+	defaultFile: "init.md",
 	saveIntervals: null,
 	shell:shell,
 	rootDir:rootDir,
@@ -47,7 +47,8 @@ let store = {
 	acceptedfiles : [
 		".md",
 		".png"
-	]
+	],
+	sortByModified: false
 };
 
 document.explorerFrontend = new Vue({
@@ -97,10 +98,13 @@ document.explorerFrontend = new Vue({
 	},
 	computed:{
 		currentOpenFile(){
-			return path.basename(this.defaultFile);
+			return this.defaultFile;
 		}
 	},
 	methods:{
+		gotoPath(index){
+			this.foldertree = this.foldertree.splice(0,index + 1);
+		},
 		loadModules(){
 			// Get the path to the modules/editor folder
 			let editorModulesFolder = path.join(document.__dirname,"../modules/editor");
@@ -179,13 +183,7 @@ document.explorerFrontend = new Vue({
 			},250);
 		},
 		currentOpenFileExt(){
-			return path.extname(this.defaultFile);
-		},
-		setOpenFile(file){
-			this.openedFile = file;
-		},
-		getOpenFile(){
-			return this.openedFile;
+			return this.path.extname(this.defaultFile);
 		},
 		newFile(){
 			this.defaultFile = false;
@@ -222,8 +220,9 @@ document.explorerFrontend = new Vue({
 			file.saveFile(path, contents);
 			defaultFile = path;
 		},
-		openFile(path){
-			if(this.pathd.extname(path) == '.png'){
+		openFile(fileToOpen){
+			let path = this.path.join(this.root,this.foldertree.join('/'), fileToOpen);
+			if(this.path.extname(path) == '.png'){
 
 			}else{
 				this.supressChange = true;
@@ -233,7 +232,7 @@ document.explorerFrontend = new Vue({
 
 			this.defaultFile = path;
 			console.log("opening file: "+path);
-			document.title = "Notable.ink - " + __dirname + "\\." + path;
+			document.title = "Notable.ink - " + this.path.join(this.foldertree.join('/'), fileToOpen);
 		},
 		visit(url){
 			shell.openExternal(url);
