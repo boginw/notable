@@ -16,16 +16,13 @@ module.exports = function (document, md) {
             widgets.mixins.editParagraph()
         ],
         createElement: function (widget) {
-            // Create the spam to replace the formula
             var img = document.createElement('img');
             img.src = widget.props.src;
             img.alt = widget.props.alt;
             return img;
         }
     });
-    // Create a widgets manager connected to an editor
     var manager = widgets.createManager(md.codemirror);
-    // Connect a type of widget to the manager
     manager.enable(WidgetImages);
     var preview = function (plaintext) {
         return plaintext;

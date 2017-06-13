@@ -2,12 +2,14 @@ import * as os from 'os'; // native node.js module
 const fs = require('fs');
 const path = require('path');
 const { remote } = require('electron'); // native electron module
+const { app } = remote;
 const jetpack = require('fs-jetpack'); // module loaded from npm
 import env from './env';
 
 // Electron does not have HiDPI for Linux yet, so here's a workaround
 import ZoomFactor from './modules/application/ZoomFactor/ZoomFactor';
 import TitleBar from './modules/application/TitleBar/TitleBar';
+import Explorer from './modules/application/Explorer/Explorer';
 
 const SimpleMDE = require('simplemde');
 
@@ -17,7 +19,7 @@ import {
 } from './interfaces';
 
 namespace Notable {
-	
+
 	class Notable{
 		md:SimpleMDE;
 		modules:EditorModule[];
@@ -42,6 +44,7 @@ namespace Notable {
 			});
 			
 			new TitleBar(document, this.md);
+			new Explorer(path.join(app.getPath('documents'),'notes'));
 
 			// Load modules
 			this.modules = this.loadModules(__dirname, this.md);
@@ -59,7 +62,7 @@ namespace Notable {
 			let editorModulesFolder:string = path.join(pathToThis, "modules/editor");
 			// Get all folders in modules/editor
 			let folders:string[] = fs.readdirSync(editorModulesFolder)
-				.filter(file => fs.statSync(path.join(editorModulesFolder, file)).isDirectory());
+				.filter((file:any) => fs.statSync(path.join(editorModulesFolder, file)).isDirectory());
 			
 			let modules:EditorModule[] = [];
 
@@ -68,11 +71,9 @@ namespace Notable {
 				let pathToModule:string = path.join(
 					editorModulesFolder, folders[i], folders[i] + ".js");
 
-				console.log(pathToModule);
 				// Instantiate and store module 
-				modules.push(
-					require(pathToModule)(document, md)
-				);
+				let mod:any = require(pathToModule)(document, md);
+				modules.push(mod);
 			}
 
 			// Overwrite previewRender

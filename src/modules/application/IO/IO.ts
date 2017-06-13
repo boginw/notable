@@ -1,13 +1,17 @@
 let fs = require('fs');
 let path = require('path');
 
+import {
+	NotableFile
+} from '../../../interfaces';
+
 export default class IO{
 	/**
 	 * Opens file and gets its contents
 	 * @param {string}  fileName File to open
 	 * @return {strnig} File contents
 	 */
-	openFile(fileName:string):string{
+	public openFile(fileName:string):string{
 		// Try to open the file, if fails, just return empty string
 		try {
 			// Do we have access?
@@ -25,12 +29,28 @@ export default class IO{
 	 * @param {string} path Path to file
 	 * @param {string} contents Contents to be written to the file 
 	 */
-	saveFile(path:string, contents:string):void{
-		fs.writeFile(path, contents, function(err) {
+	public saveFile(path:string, contents:string):void{
+		fs.writeFile(path, contents, function(err:string) {
 		    if(err) {
 		        throw err;
 		    }
 		});
+	}
+
+	/**
+	 * Creates a folder
+	 * @param path Path to the folder to create
+	 */
+	public createFolder(path:string):void{
+		fs.mkdirSync(path);
+	}
+
+	/**
+	 * Checks if a thing in the filesystem exists
+	 * @param {string} path Path to thing to check if exists
+	 */
+	public exists(path:string):boolean{
+		return fs.existsSync(path);
 	}
 	
 	/**
@@ -39,8 +59,8 @@ export default class IO{
 	 * @param  {int} 	bufferLength length of the buffer which stores the file
 	 * @return {string}              file preview
 	 */
-	filePreview(pathToFile:string);
-	filePreview(pathToFile:string, bufferLength?:number):string{
+	public filePreview(pathToFile:string):string;
+	public filePreview(pathToFile:string, bufferLength?:number):string{
 		// Overload methods are overrated
 		bufferLength = bufferLength || 100;
 		
@@ -54,7 +74,7 @@ export default class IO{
 		fs.readSync(fd, buffer, 3, bufferLength - 5, 0);
 
 		// return preview without newlines
-		return String(buffer).replace(/\n/gm," ");
+		return String(buffer).replace(/\n/gm," ").replace(/\0/g,'');
 	}
 
 	/**
@@ -62,22 +82,22 @@ export default class IO{
 	 * @param dirPath 		Path to the directory
 	 * @param acceptedfiles Filter files
 	 */
-	filesInDirectory(dirPath:string):file[];
-	filesInDirectory(dirPath:string, acceptedfiles?:string[]):file[]{
+	public filesInDirectory(dirPath:string):NotableFile[];
+	public filesInDirectory(dirPath:string, acceptedfiles?:string[]):NotableFile[]{
 		let files:string[] = fs.readdirSync(dirPath);
-		let tree = [];
-		let folders = [];
+		let tree:NotableFile[] = [];
+		let folders:NotableFile[] = [];
 
 		for(var i:number = 0; i <= (files.length-1); i++){
 			let filePath:string = path.join(dirPath, files[i]);
-			let file:file = <file>{
+			let file:NotableFile = <NotableFile>{
 				name: files[i],
 				extension: (path.extname(files[i])) ? path.extname(files[i]) : 
 					(files[i].substring(0, 4) == ".git") ? '.git' :'.default',
 				stat: fs.statSync(filePath),
 				open: false,
 				childrens: [],
-				preview: null
+				preview: ""
 			}
 
 			if(file.stat.isDirectory()){

@@ -6,6 +6,7 @@
 		<link rel="stylesheet" href="../node_modules/simplemde/dist/simplemde.min.css">
 		<link rel="stylesheet" href="../node_modules/material-icons/css/material-icons.min.css">
 		<link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css" />
+		<link rel="stylesheet" href="./fonts/Material_Icons/material-icons.css" />
 		<link href="stylesheets/main.css" rel="stylesheet" type="text/css">
 		<script src="app.js"></script>
 	</head>	
@@ -18,10 +19,16 @@
 					<section class="sidebar-header">
 						<div class="settings navigation">
 							<div class="pathItem home"><i class="material-icons">book</i></div>
-							<div v-for="item,i in foldertree">
+							<!--<div v-for="item,i in foldertree">
 								<div class="pathItem">{{ item }}</div>
-							</div>
+							</div>-->
 						</div>
+						
+					</section>
+					<section class="sidebar-containers" >
+						<div class="folders_and_files"></div>
+					</section>
+					<section class="sidebar-footer">
 						<div class="settings">
 							<div class="sort">
 								<label class="switch">
@@ -36,14 +43,10 @@
 							</div>
 						</div>
 					</section>
-					<section class="sidebar-containers" >
-						<div class="folders_and_files">
-						</div>
-					</section>
 					<section class="sidebar-buttons" >
 						<span class="btn-sidebar btn-terminal">
 							<i class="icon material-icons">link</i>
-							<span class="text" >Notable.ink</span>
+							<span class="text">Notable.ink</span>
 						</span>
 						<span class="btn-sidebar btn-feedback">
 							<i class="icon material-icons">print</i>
@@ -66,9 +69,9 @@
 							<textarea id="editor"></textarea>
 						</div>
 
-						<div class="editor_holder image_holder">
+						<!--<div class="editor_holder image_holder">
 							<img v-bind:src="defaultFile" />
-						</div>
+						</div>-->
 					</div>
 				</div>
 			</div>

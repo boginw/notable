@@ -9,7 +9,7 @@ import {
 module.exports = function(document:Document, md:SimpleMDE):EditorModule{
 	var WidgetMath = widgets.createType({
 	    mixins: [
-	        widgets.mixins.re(/\$([^$]+?)\$/g, function(match) {
+	        widgets.mixins.re(/\$([^$]+?)\$/g, function(match:string[]) {
 
 	            return {
 	                props: {
@@ -20,7 +20,7 @@ module.exports = function(document:Document, md:SimpleMDE):EditorModule{
 	        widgets.mixins.editParagraph()
 	    ],
 
-	    createElement: function(widget) {
+	    createElement: function(widget:any):HTMLElement {
 	        // Create the spam to replace the formula
 	        var span:HTMLElement = document.createElement('span');
 

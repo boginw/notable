@@ -39,6 +39,7 @@ app.on('ready', function () {
         width: 1000,
         height: 600,
         "node-integration": false,
+        frame: false,
     });
 
     mainWindow.loadURL(url.format({

@@ -5,11 +5,11 @@ import {
 } from '../../../interfaces';
 
 export default class TitleBar{
-	isWindows:boolean;
-	isLinux:boolean;
-	isFullscreen:boolean;
-	md:SimpleMDE;
-	document:Document
+	private isWindows:boolean;
+	private isLinux:boolean;
+	private isFullscreen:boolean;
+	private md:SimpleMDE;
+	private document:Document
 
 	/**
 	 * Default constructor
@@ -31,7 +31,7 @@ export default class TitleBar{
 	 * Create the header and attach the appropriate eventlisteners
 	 * @return {HTMLDivElement} Header as HTML element
 	 */
-	renderHeader():void{
+	private renderHeader():void{
 		let logo:HTMLDivElement = this.logo();
 		let buttons:HTMLDivElement = this.titleBarButtons();
 
@@ -77,11 +77,11 @@ export default class TitleBar{
 	 * Create logo and attach eventlistener
 	 * @return {HTMLDivElement} Header as HTML element 
 	 */
-	logo():HTMLDivElement{
+	private logo():HTMLDivElement{
 		let logo:HTMLDivElement = document.createElement('div');
 		logo.className = 'logo';
 		logo.innerHTML = '<img src="images/logo.png" width="30" height="30">';
-		logo.onclick = this.handleFullscreen;
+		logo.onclick = this.handleLogo;
 
 		return logo;
 	}
@@ -90,7 +90,7 @@ export default class TitleBar{
 	 * Create title bar buttons, and attach eventlistener
 	 * @return {HTMLDivElement} Header as HTML element
 	 */
-	titleBarButtons():HTMLDivElement{
+	private titleBarButtons():HTMLDivElement{
 		let base:HTMLDivElement = document.createElement('div');
 		base.className = (this.isWindows ? 'windows-buttons' : 'buttons');
 
@@ -130,7 +130,7 @@ export default class TitleBar{
 	/**
 	 * When the user clicks the logo
 	 */
-	handleLogo():any{
+	private handleLogo():any{
 		if(this.md.isPreviewActive()){
 			this.md.togglePreview();
 		}
@@ -143,25 +143,25 @@ export default class TitleBar{
 	/**
 	 * When the user clicks the close butten
 	 */
-	handleClose():any{
-		if (this.isWindows) {
-			remote.getCurrentWindow().close();
-		} else {
+	private handleClose():any{
+		if (!this.isWindows && !this.isLinux) {
 			remote.getCurrentWindow().hide();
+		} else {
+			remote.getCurrentWindow().close();
 		}
 	}
 
 	/**
 	 * When the user clicks the minimize button
 	 */
-	handleMinimize():any{
+	private handleMinimize():any{
 		remote.getCurrentWindow().minimize();
 	}
 
 	/**
 	 * When the user clicks the maximize button
 	 */
-	handleFullscreen():any{
+	private handleFullscreen():any{
 		if (this.isWindows || this.isLinux) {
 			if (remote.getCurrentWindow().isMaximized()) {
 				remote.getCurrentWindow().unmaximize();

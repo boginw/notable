@@ -6,7 +6,7 @@
 const { app, BrowserWindow } = require('electron'); // native electron module
 const jetpack = require('fs-jetpack');
 
-export default function (name, options) {
+export default function (name:string, options:any) {
 
     var userDataDir = jetpack.cwd(app.getPath('userData'));
     var stateStoreFile = 'window-state-' + name +'.json';
@@ -15,7 +15,7 @@ export default function (name, options) {
         height: options.height
     };
     var state = {};
-    var win;
+    var win:any;
 
     var restore = function () {
         var restoredState = {};
@@ -39,7 +39,7 @@ export default function (name, options) {
         };
     };
 
-    var windowWithinBounds = function (windowState, bounds) {
+    var windowWithinBounds = function (windowState:any, bounds:any) {
         return windowState.x >= bounds.x &&
             windowState.y >= bounds.y &&
             windowState.x + windowState.width <= bounds.x + bounds.width &&

@@ -14,7 +14,7 @@ export default class ZoomFactor{
             webFrame.setZoomFactor(scale);
         }else if(process.platform == "linux"){
             var releaseString:string = String(cp.execSync("cat /etc/*-release"));
-            var distro:string[] = this.distroRegExp.exec(releaseString);
+            var distro:any = this.distroRegExp.exec(releaseString);
             if(distro.length && distro[1] == "Ubuntu"){
                 var scalingArray:number[] = cp.execSync("gsettings get org.gnome.desktop.interface text-scaling-factor");
                 var scaling:number = Number.parseFloat(String(scalingArray));
