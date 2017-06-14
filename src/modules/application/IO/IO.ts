@@ -1,5 +1,6 @@
 let fs = require('fs');
 let path = require('path');
+let watch = require('watch');
 
 import {
 	NotableFile
@@ -77,6 +78,55 @@ export default class IO{
 		return String(buffer).replace(/\n/gm," ").replace(/\0/g,'');
 	}
 
+	public watchDirectory(dirPath:string, callback:(f:any, curr:any, prev:any) => any):void{
+		watch.watchTree(dirPath, callback);
+	}
+
+	/**
+	 * Leave this directory alone!
+	 * @param {string} dirPath Directory path
+	 */
+	public unwatchDirectory(dirPath:string):void{
+		watch.unwatchTree(dirPath);
+	}
+
+	/**
+	 * Get file stats from file system
+	 * @param {string} filePath Path to file
+	 * @return {any} File stats
+	 */
+	public fileStats(filePath:string):any{
+		return fs.statSync(filePath);
+	}
+
+	/**
+     * Creates file from path
+     * @param {string} filePath Path to the file to be created
+     */
+    public fileFromPath(filePath:string, stats?:any):NotableFile{
+        // Construct file
+        let file:NotableFile = <NotableFile>{
+            name: filePath,
+            extension: (path.extname(filePath)) ? path.extname(filePath) : 
+                (filePath.substring(0, 4) == ".git") ? '.git' :'.default',
+            stat: stats ? stats : this.fileStats(filePath),
+            open: false,
+            childrens: [],
+            preview: "",
+        }
+
+        // Directories don't have previews
+        if(file.stat.isDirectory()){
+            return file;
+        }
+
+        // Get file preview if the file isn't png
+        file.preview = path.extname(filePath) == '.png' ? 
+            "" : this.filePreview(filePath);
+
+        return file;
+    }
+
 	/**
 	 * Gets all files in a specific directory
 	 * @param dirPath 		Path to the directory
@@ -90,21 +140,13 @@ export default class IO{
 
 		for(var i:number = 0; i <= (files.length-1); i++){
 			let filePath:string = path.join(dirPath, files[i]);
-			let file:NotableFile = <NotableFile>{
-				name: files[i],
-				extension: (path.extname(files[i])) ? path.extname(files[i]) : 
-					(files[i].substring(0, 4) == ".git") ? '.git' :'.default',
-				stat: fs.statSync(filePath),
-				open: false,
-				childrens: [],
-				preview: ""
-			}
+			let file:NotableFile = this.fileFromPath(filePath);
 
 			if(file.stat.isDirectory()){
 				folders.push(file);
 
-			}else if((!acceptedfiles || acceptedfiles.length == 0) || acceptedfiles.indexOf(file.extension) != -1){
-				file.preview = path.extname(files[i]) == '.png' ? "" : this.filePreview(filePath);
+			}else if((!acceptedfiles || acceptedfiles.length == 0) || 
+					acceptedfiles.indexOf(file.extension) != -1){
 				tree.push(file);
 			}
 		}

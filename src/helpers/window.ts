@@ -2,12 +2,12 @@
 // them in that place after app relaunch).
 // Can be used for more than one window, just construct many
 // instances of it and give each different name.
-
-const { app, BrowserWindow } = require('electron'); // native electron module
+const electron = require('electron');
+const { app, BrowserWindow } = electron; // native electron module
 const jetpack = require('fs-jetpack');
 
-export default function (name:string, options:any) {
-
+export default function (name:string, options:any):any {
+    const { screen } = electron;
     var userDataDir = jetpack.cwd(app.getPath('userData'));
     var stateStoreFile = 'window-state-' + name +'.json';
     var defaultSize = {
@@ -46,7 +46,7 @@ export default function (name:string, options:any) {
             windowState.y + windowState.height <= bounds.y + bounds.height;
     };
 
-    /*var resetToDefaults = function (windowState) {
+    var resetToDefaults = function (windowState) {
         var bounds = screen.getPrimaryDisplay().bounds;
         return Object.assign({}, defaultSize, {
             x: (bounds.width - defaultSize.width) / 2,
@@ -64,7 +64,7 @@ export default function (name:string, options:any) {
             return resetToDefaults(windowState);
         }
         return windowState;
-    };*/
+    };
 
     var saveState = function () {
         if (!win.isMinimized() && !win.isMaximized()) {
@@ -73,7 +73,7 @@ export default function (name:string, options:any) {
         userDataDir.write(stateStoreFile, state, { atomic: true });
     };
 
-    //state = ensureVisibleOnSomeDisplay(restore());
+    state = ensureVisibleOnSomeDisplay(restore());
 
     win = new BrowserWindow(Object.assign({}, options, state));
 

@@ -4,6 +4,7 @@ const path = require('path');
 const { remote } = require('electron'); // native electron module
 const { app } = remote;
 const jetpack = require('fs-jetpack'); // module loaded from npm
+const SimpleMDE = require('simplemde');
 import env from './env';
 
 // Electron does not have HiDPI for Linux yet, so here's a workaround
@@ -11,11 +12,10 @@ import ZoomFactor from './modules/application/ZoomFactor/ZoomFactor';
 import TitleBar from './modules/application/TitleBar/TitleBar';
 import Explorer from './modules/application/Explorer/Explorer';
 
-const SimpleMDE = require('simplemde');
-
 import {
 	EditorModule,
-	SimpleMDE
+	SimpleMDE,
+	NotableFile
 } from './interfaces';
 
 namespace Notable {
@@ -23,6 +23,7 @@ namespace Notable {
 	class Notable{
 		md:SimpleMDE;
 		modules:EditorModule[];
+		openedFile:NotableFile|null;
 
 		/**
 		 * Default constructor
@@ -30,6 +31,9 @@ namespace Notable {
 		constructor(){
 			// Zoom to defined scale (Linux specific)
 			new ZoomFactor().zoom();
+
+			let openedFileNode:HTMLSpanElement = <HTMLSpanElement> 
+				document.querySelector('div.header-section > .text span:nth-child(1)');
 
 			// Create SimpleMDE instance
 			this.md = new SimpleMDE({
@@ -44,7 +48,21 @@ namespace Notable {
 			});
 			
 			new TitleBar(document, this.md);
-			new Explorer(path.join(app.getPath('documents'),'notes'));
+			let explorer:Explorer = new Explorer(path.join(app.getPath('documents'),'notes'));
+			explorer.on('open',(file:NotableFile, contents) => {
+				openedFileNode.innerHTML = 
+					file.name.replace(path.join(app.getPath('documents'),'notes'),'');
+				this.md.value(contents);
+				this.openedFile = file;
+			});
+
+			explorer.on('deleted',(file:NotableFile, contents) => {
+				if(this.openedFile != null && file.name == this.openedFile.name){
+					openedFileNode.innerHTML = "";
+					this.openedFile = null;
+					alert("This file was deleted");
+				}
+			});
 
 			// Load modules
 			this.modules = this.loadModules(__dirname, this.md);
@@ -57,7 +75,7 @@ namespace Notable {
 		 * 					 render.
 		 * @return array of EditorModule modules
 		 */
-		loadModules(pathToThis:string, md:SimpleMDE): EditorModule[]{
+		private loadModules(pathToThis:string, md:SimpleMDE): EditorModule[]{
 			// Get the path to the modules/editor folder	
 			let editorModulesFolder:string = path.join(pathToThis, "modules/editor");
 			// Get all folders in modules/editor
@@ -65,7 +83,7 @@ namespace Notable {
 				.filter((file:any) => fs.statSync(path.join(editorModulesFolder, file)).isDirectory());
 			
 			let modules:EditorModule[] = [];
-
+			
 			for(var i:number = 0; i < folders.length; i++){
 				// Get path to main js file
 				let pathToModule:string = path.join(

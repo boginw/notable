@@ -34,7 +34,8 @@
     "material-icons": "^0.1.0",
     "run-sequence": "^1.2.2",
     "simplemde": "^1.11.2",
-    "typescript": "^2.2.1"
+    "typescript": "^2.2.1",
+    "watch": "^1.0.2"
   },
   "devDependencies": {
     "@types/electron": "^1.4.33",

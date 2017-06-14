@@ -18,6 +18,7 @@ export interface SimpleMDE{
     togglePreview():void;
     isFullscreenActive():boolean;
     toggleFullScreen():void;
+    value:(contents:string) => string;
 }
 
 export interface NotableFile{
