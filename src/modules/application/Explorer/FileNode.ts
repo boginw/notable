@@ -9,16 +9,17 @@ import {
 import TimeAgo from '../../../helpers/timeago';
 
 interface FileNodeEvents{
-    click:((filenode:FileNode) => any)[];
-    dblclick:((filenode:FileNode) => any)[];
-    contextmenu:((filenode:FileNode) => any)[];
-    dragstart:((filenode:FileNode) => any)[];
-    dragover:((filenode:FileNode) => any)[];
-    dragenter:((filenode:FileNode) => any)[];
-    drop:((filenode:FileNode) => any)[];
-    newFile:((filenode:FileNode) => any)[];
-    newFolder:((filenode:FileNode) => any)[];
-    delete:((filenode:FileNode) => any)[];
+    click:((filenode:FileNode, contents?:string) => any)[];
+    dblclick:((filenode:FileNode, contents?:string) => any)[];
+    contextmenu:((filenode:FileNode, contents?:string) => any)[];
+    dragstart:((filenode:FileNode, contents?:string) => any)[];
+    dragover:((filenode:FileNode, contents?:string) => any)[];
+    dragenter:((filenode:FileNode, contents?:string) => any)[];
+    drop:((filenode:FileNode, contents?:string) => any)[];
+    newFile:((filenode:FileNode, contents?:string) => any)[];
+    newFolder:((filenode:FileNode, contents?:string) => any)[];
+    delete:((filenode:FileNode, contents?:string) => any)[];
+    rename:((filenode:FileNode, contents?:string) => any)[];
 }
 
 export default class FileNode{
@@ -28,6 +29,7 @@ export default class FileNode{
     private _open:boolean;
     private base:HTMLLIElement;
     private fileEvents:FileNodeEvents;
+    private renameInput:HTMLInputElement;
 
     get file():NotableFile {
         return this._file;
@@ -37,6 +39,8 @@ export default class FileNode{
     set file(notafile:NotableFile) {
         this._file = notafile;
         this.node = this.renderItem(this.file);
+        // Store events
+        this.setEvents();
     }
 
     get open():boolean {
@@ -57,16 +61,17 @@ export default class FileNode{
         this.ta = new TimeAgo();
 
         this.fileEvents = {
-            click:new Array<(filenode:FileNode) => any>(0),
-            dblclick:new Array<(filenode:FileNode) => any>(0),
-            contextmenu:new Array<(filenode:FileNode) => any>(0),
-            dragstart:new Array<(filenode:FileNode) => any>(0),
-            dragover:new Array<(filenode:FileNode) => any>(0),
-            dragenter:new Array<(filenode:FileNode) => any>(0),
-            drop:new Array<(filenode:FileNode) => any>(0),
-            newFile:new Array<(filenode:FileNode) => any>(0),
-            newFolder:new Array<(filenode:FileNode) => any>(0),
-            delete:new Array<(filenode:FileNode) => any>(0),
+            click:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            dblclick:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            contextmenu:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            dragstart:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            dragover:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            dragenter:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            drop:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            newFile:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            newFolder:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            delete:new Array<(filenode:FileNode, contents?:string) => any>(0),
+            rename:new Array<(filenode:FileNode, contents?:string) => any>(0),
         };
 
         // Base should only be created once
@@ -74,14 +79,30 @@ export default class FileNode{
 
         // Store file, and render
         this.file = file;
-        
-        // Store events
-        this.setEvents();
+    }
 
-    
-     }
+    public renameFile():void{
+        let inputField:HTMLInputElement = <HTMLInputElement> 
+            this.base.querySelector('.inputTitleText');
+        inputField.style.display = 'inline-block';
+        inputField.value = this.fileDisplayName(this.file);
+        inputField.focus();
+        inputField.setSelectionRange(0, inputField.value.length);
+    }
 
-    public on(event:string,trigger:(filenode:FileNode) => void):void{
+    public renameFileBlur():void{
+        let inputField:HTMLInputElement = <HTMLInputElement> 
+            this.base.querySelector('.inputTitleText');
+        inputField.style.display = 'none';
+        inputField.value = '';
+    }
+
+    /**
+     * Subscribe to specific event
+     * @param {string} event Event to subscribe to
+     * @param {anonymous function} trigger Trigger callback
+     */
+    public on(event:string,trigger:(filenode:FileNode, contents?:string) => void):void{
         if(this.fileEvents[event] == undefined){
             return;
         }
@@ -93,10 +114,10 @@ export default class FileNode{
      * Trigger specific event
      * @param {string} event Event to trigger
      */
-    public trigger(event:string):void{
+    public trigger(event:string, contents?:string):void{
         if(this.fileEvents[event] != undefined){
              this.fileEvents[event].forEach(element => {
-                element(this);
+                element(this,contents);
             });
         }
     }
@@ -110,6 +131,7 @@ export default class FileNode{
             this.trigger('click');
         };
         this.base.ondblclick = () => {
+            this.renameFile();
             this.trigger('dbclick');
         };
         this.base.oncontextmenu = () => {
@@ -130,6 +152,22 @@ export default class FileNode{
         this.base.ondrop = () => {
             this.trigger('drop');
         };
+
+        // Rename events
+        // TODO: this doesn't work with this.renameInput, but this is good enough
+        let inputField:HTMLInputElement = <HTMLInputElement> 
+            this.base.querySelector('.inputTitleText');
+
+        inputField.addEventListener('keypress',(ev:KeyboardEvent)=>{
+            if(ev.keyCode == 13){
+                this.trigger('rename', inputField.value + this.file.extension);
+                this.renameFileBlur();
+            }
+        },true);
+
+        inputField.onblur = () => {
+            this.renameFileBlur();
+        }
     }
 
     /**
@@ -141,22 +179,28 @@ export default class FileNode{
                 {
                     label: 'New Note',
                     role: 'new',
-                    click: this.trigger('newFile'),
+                    click: () => {
+                        this.trigger('newFile')
+                    },
                 }, {
                     label: 'Rename',
                     role: 'rename',
-                    //click: this.renameFile(),
+                    click: this.renameFile(),
                 }, {
                     type: 'separator',
                 }, {
                     label: 'New Folder',
                     role: 'newFolder',
-                    click: this.trigger('newFolder'),
+                    click: () => {
+                        this.trigger('newFolder')
+                    },
                     
                 }, {
                     label: 'Delete Folder',
                     role: 'delFolder',
-                    click: this.trigger('delete'),
+                    click: ()=>{
+                        this.trigger('delete')
+                    },
                     
                 }, {
                     type: 'separator',
@@ -170,11 +214,13 @@ export default class FileNode{
                 {
                     label: 'Rename',
                     role: 'rename',
-                    //click: this.renameFile(),
+                    click: this.renameFile(),
                 }, {
                     label: 'Delete',
                     role: 'deleteFile',
-                    click: this.trigger('delete'),
+                    click: ()=>{
+                        this.trigger('delete')
+                    },
                 }, {
                     type: 'separator',
                 }, {
@@ -192,7 +238,7 @@ export default class FileNode{
      * Destroy node
      */
     public fileRemoved():void{
-        this.node.outerHTML = '';
+        this.node.remove();
     }
     
     /**
@@ -242,6 +288,11 @@ export default class FileNode{
         let title:HTMLDivElement = document.createElement('div');
         title.className = "title";
         title.innerHTML = `<span class="titleText">${this.fileDisplayName(file)}</span>`;
+
+        this.renameInput = document.createElement('input');
+        this.renameInput.className = "inputTitleText";
+
+        title.appendChild(this.renameInput);
         
         // Only files have preview and lastmod
         if(!file.stat.isDirectory()){
@@ -257,5 +308,9 @@ export default class FileNode{
         contents.appendChild(title);
         this.base.appendChild(contents);
         return this.base;
+    }
+
+    public agoInterval():any{
+        
     }
 }

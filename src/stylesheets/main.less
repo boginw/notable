@@ -267,6 +267,12 @@ tbody{
     overflow-x: hidden;
     box-sizing: border-box;
     max-width: 220px;
+    position: absolute;
+    left: 0px;
+    width:100%;
+    height: 100%;
+    transition: 225ms;
+    
 
     & .empty-folder{
         display: flex;
@@ -280,6 +286,15 @@ tbody{
                 color:#22b8eb;
             }
         }
+    }
+
+    &.animateOut{
+        transition: 225ms;
+        left: -100%;
+    }
+    &.animateIn{
+        transition: 225ms;
+        left: 100%;
     }
 }
 .folders_and_files ul li{
@@ -347,13 +362,40 @@ tbody{
     bottom: 5px;
 }
 
+.inputTitleText{
+    font-family: 'Roboto', sans-serif;
+    background: #FFF;
+    outline: none;
+    width: calc(84%);
+    display: inline-block;
+    vertical-align: bottom;
+    border: 0px none;
+    font-size: 16px;
+    border-radius: 3px;
+    top: 9px;
+    left: 8px;
+    position: absolute;
+    display: none;
+    height: 14px;
+    &:focus{
+        outline: none;     
+    }
+}
+
+.folders_and_files{
+    & .title{
+        position: relative;
+    }
+}
+
 .titleText{
-    width: calc(100% - 45px);
+    width: calc(~"100%");
     display: inline-block;
     vertical-align: bottom;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 16px;    
 }
 
 .image_holder{

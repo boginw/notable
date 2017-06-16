@@ -38,6 +38,14 @@ export default class IO{
 		});
 	}
 
+	public deleteFile(path:string):void{
+		fs.unlinkSync(path);
+	}
+
+	public rename(filePath:string, newName:string){
+		fs.renameSync(filePath, newName);
+	}
+
 	/**
 	 * Creates a folder
 	 * @param path Path to the folder to create

@@ -29,11 +29,16 @@ namespace Notable {
 		 * Default constructor
 		 */
 		constructor(){
+			let startingPath:string = path.join(app.getPath('documents'),'notes');
+
 			// Zoom to defined scale (Linux specific)
 			new ZoomFactor().zoom();
 
 			let openedFileNode:HTMLSpanElement = <HTMLSpanElement> 
 				document.querySelector('div.header-section > .text span:nth-child(1)');
+
+			let savedUnsaved:HTMLSpanElement = <HTMLSpanElement> 
+				document.querySelector('div.header-section > .text span:nth-child(2)');
 
 			// Create SimpleMDE instance
 			this.md = new SimpleMDE({
@@ -48,19 +53,32 @@ namespace Notable {
 			});
 			
 			new TitleBar(document, this.md);
-			let explorer:Explorer = new Explorer(path.join(app.getPath('documents'),'notes'));
+
+			// Initialize project explorer
+			let explorer:Explorer = new Explorer(startingPath);
+
 			explorer.on('open',(file:NotableFile, contents) => {
 				openedFileNode.innerHTML = 
-					file.name.replace(path.join(app.getPath('documents'),'notes'),'');
+					file.name.replace(startingPath,'');
 				this.md.value(contents);
 				this.openedFile = file;
+				savedUnsaved.style.display = 'none';
 			});
 
-			explorer.on('deleted',(file:NotableFile, contents) => {
+			explorer.on('deleted',(file:NotableFile) => {
 				if(this.openedFile != null && file.name == this.openedFile.name){
 					openedFileNode.innerHTML = "";
 					this.openedFile = null;
+					savedUnsaved.style.display = 'initial';
 					alert("This file was deleted");
+				}
+			});
+
+			explorer.on('rename',(file:NotableFile, newName:string) =>{
+				if(this.openedFile != null && file.name == this.openedFile.name){
+					this.openedFile = file;
+					openedFileNode.innerHTML = 
+						newName.replace(startingPath,'');
 				}
 			});
 
