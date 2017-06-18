@@ -8,17 +8,13 @@ export default class TitleBar{
 	private isWindows:boolean;
 	private isLinux:boolean;
 	private isFullscreen:boolean;
-	private md:SimpleMDE;
-	private document:Document
 
 	/**
 	 * Default constructor
 	 * @param {Document} document document 
 	 * @param {SimpleMDE} md      SimpleMDE instance
 	 */
-    constructor(document:Document, md:SimpleMDE){
-		this.document = document;
-		this.md = md;
+    constructor(){
 		this.isWindows = process.platform == "win32";
 		this.isLinux   = process.platform == "linux";
 		this.isFullscreen = remote.getCurrentWindow().isMaximized() ||
@@ -131,13 +127,7 @@ export default class TitleBar{
 	 * When the user clicks the logo
 	 */
 	private handleLogo():any{
-		if(this.md.isPreviewActive()){
-			this.md.togglePreview();
-		}
-
-		if(this.md.isFullscreenActive()){
-			this.md.toggleFullScreen();
-		}
+		// TODO: ???
 	}
 
 	/**

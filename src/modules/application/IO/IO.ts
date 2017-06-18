@@ -12,7 +12,7 @@ export default class IO{
 	 * @param {string}  fileName File to open
 	 * @return {strnig} File contents
 	 */
-	public openFile(fileName:string):string{
+	public static openFile(fileName:string):string{
 		// Try to open the file, if fails, just return empty string
 		try {
 			// Do we have access?
@@ -30,7 +30,7 @@ export default class IO{
 	 * @param {string} path Path to file
 	 * @param {string} contents Contents to be written to the file 
 	 */
-	public saveFile(path:string, contents:string):void{
+	public static saveFile(path:string, contents:string):void{
 		fs.writeFile(path, contents, function(err:string) {
 		    if(err) {
 		        throw err;
@@ -38,11 +38,57 @@ export default class IO{
 		});
 	}
 
-	public deleteFile(path:string):void{
+	public static deleteFile(path:string):void{
 		fs.unlinkSync(path);
 	}
 
-	public rename(filePath:string, newName:string){
+	public static deleteFolder(dirPath:string):void{
+		if( fs.existsSync(dirPath) ) {
+			fs.readdirSync(dirPath).forEach((file,index)=>{
+				var curPath = path.join(dirPath, file);
+				if(fs.lstatSync(curPath).isDirectory()) { // recurse
+					this.deleteFolder(curPath);
+				} else { // delete file
+					fs.unlinkSync(curPath);
+				}
+			});
+			fs.rmdirSync(dirPath);
+		}
+	}
+
+	/**
+     * Checks if a folder exists, and if not, create it
+     * by all means
+     * @param {string} dir Folder to ensure exists
+     * @return {boolean} Whether or not it was possible to
+     *                   ensure existance.
+     */
+    public static ensureFolderExists(dir):boolean{
+        // If the folder exists or folder is undefined
+        // then we say that we have ensured that the
+        // folder exists
+        if(this.exists(dir) || !dir){
+            return true;
+        }
+
+        // Split the path by the OS seperator
+        let splitDir:string[] = dir.split(path.sep);
+        // Pop to get the last element of splitDir and remove it
+        let folderToCreate:string = splitDir.pop() || "";
+        // Create the path to the folder above this one
+        let newDir:string = splitDir.join(path.sep);
+
+        // Ensure that the folder above this exists
+        if(this.ensureFolderExists(newDir)){
+            // Create the folder
+            this.createFolder(path.join(newDir, folderToCreate));
+            return true;
+        }
+        // Folder could not be created
+        return false;
+    }
+
+	public static rename(filePath:string, newName:string){
 		fs.renameSync(filePath, newName);
 	}
 
@@ -50,7 +96,7 @@ export default class IO{
 	 * Creates a folder
 	 * @param path Path to the folder to create
 	 */
-	public createFolder(path:string):void{
+	public static createFolder(path:string):void{
 		fs.mkdirSync(path);
 	}
 
@@ -58,7 +104,7 @@ export default class IO{
 	 * Checks if a thing in the filesystem exists
 	 * @param {string} path Path to thing to check if exists
 	 */
-	public exists(path:string):boolean{
+	public static exists(path:string):boolean{
 		return fs.existsSync(path);
 	}
 	
@@ -68,8 +114,8 @@ export default class IO{
 	 * @param  {int} 	bufferLength length of the buffer which stores the file
 	 * @return {string}              file preview
 	 */
-	public filePreview(pathToFile:string):string;
-	public filePreview(pathToFile:string, bufferLength?:number):string{
+	public static filePreview(pathToFile:string):string;
+	public static filePreview(pathToFile:string, bufferLength?:number):string{
 		// Overload methods are overrated
 		bufferLength = bufferLength || 100;
 		
@@ -86,7 +132,7 @@ export default class IO{
 		return String(buffer).replace(/\n/gm," ").replace(/\0/g,'');
 	}
 
-	public watchDirectory(dirPath:string, callback:(f:any, curr:any, prev:any) => any):void{
+	public static watchDirectory(dirPath:string, callback:(f:any, curr:any, prev:any) => any):void{
 		watch.watchTree(dirPath, callback);
 	}
 
@@ -94,7 +140,7 @@ export default class IO{
 	 * Leave this directory alone!
 	 * @param {string} dirPath Directory path
 	 */
-	public unwatchDirectory(dirPath:string):void{
+	public static unwatchDirectory(dirPath:string):void{
 		watch.unwatchTree(dirPath);
 	}
 
@@ -103,7 +149,7 @@ export default class IO{
 	 * @param {string} filePath Path to file
 	 * @return {any} File stats
 	 */
-	public fileStats(filePath:string):any{
+	public static fileStats(filePath:string):any{
 		return fs.statSync(filePath);
 	}
 
@@ -111,7 +157,7 @@ export default class IO{
      * Creates file from path
      * @param {string} filePath Path to the file to be created
      */
-    public fileFromPath(filePath:string, stats?:any):NotableFile{
+    public static fileFromPath(filePath:string, stats?:any):NotableFile{
         // Construct file
         let file:NotableFile = <NotableFile>{
             name: filePath,
@@ -140,8 +186,8 @@ export default class IO{
 	 * @param dirPath 		Path to the directory
 	 * @param acceptedfiles Filter files
 	 */
-	public filesInDirectory(dirPath:string):NotableFile[];
-	public filesInDirectory(dirPath:string, acceptedfiles?:string[]):NotableFile[]{
+	public static filesInDirectory(dirPath:string):NotableFile[];
+	public static filesInDirectory(dirPath:string, acceptedfiles?:string[]):NotableFile[]{
 		let files:string[] = fs.readdirSync(dirPath);
 		let tree:NotableFile[] = [];
 		let folders:NotableFile[] = [];

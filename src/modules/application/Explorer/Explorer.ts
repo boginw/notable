@@ -23,7 +23,6 @@ export default class Explorer{
     private currentPath:string;
     private base:HTMLDivElement;
     private root:HTMLUListElement;
-    private io:IO;
     private fileNodes:FileNode[] = [];
     private explorerEvents:ExplorerEvents;
     // Sort by date?
@@ -37,13 +36,11 @@ export default class Explorer{
      */
     constructor(defaultPath:string){
         this.defaultPath = defaultPath;
-        // Create IO instance
-        this.io = new IO();
         // Find our base for files and folders
         this.base = <HTMLDivElement> document.querySelector('.folders_and_files');
 
         // Ensure that the default path exists
-        if(!this.ensureFolderExists(defaultPath)){
+        if(!IO.ensureFolderExists(defaultPath)){
             throw "Could not ensure that " + defaultPath + " exists...";
         }
 
@@ -55,28 +52,15 @@ export default class Explorer{
             rename:new Array<(notableFile:NotableFile, contents:string) => any>(0),
         };
 
-        // Scan folder for available files
-        this.fileNodes = this.scanFolder(defaultPath);
-
-        // Sort files
-        this.sortFiles();
-
-
-        // Create the root node
-        // Render explorer
-        this.root = this.renderExplorer(this.fileNodes);
-        this.base.appendChild(this.root);
-
-        // Monitor files
-        this.monitor(defaultPath);
-
         let homeDirNavigation:HTMLDivElement = 
             <HTMLDivElement> document.querySelector('.pathItem.home');
         
         homeDirNavigation.onclick = () => {
             this.closeDirectory(this.defaultPath);
         }
-        this.currentPath = defaultPath;        
+        this.currentPath = defaultPath;
+
+        this.openDirectory(defaultPath);
     }
 
     /**
@@ -110,44 +94,12 @@ export default class Explorer{
     }
 
     /**
-     * Checks if a folder exists, and if not, create it
-     * by all means
-     * @param {string} dir Folder to ensure exists
-     * @return {boolean} Whether or not it was possible to
-     *                   ensure existance.
-     */
-    private ensureFolderExists(dir):boolean{
-        // If the folder exists or folder is undefined
-        // then we say that we have ensured that the
-        // folder exists
-        if(this.io.exists(dir) || !dir){
-            return true;
-        }
-
-        // Split the path by the OS seperator
-        let splitDir:string[] = dir.split(path.sep);
-        // Pop to get the last element of splitDir and remove it
-        let folderToCreate:string = splitDir.pop() || "";
-        // Create the path to the folder above this one
-        let newDir:string = splitDir.join(path.sep);
-
-        // Ensure that the folder above this exists
-        if(this.ensureFolderExists(newDir)){
-            // Create the folder
-            this.io.createFolder(path.join(newDir, folderToCreate));
-            return true;
-        }
-        // Folder could not be created
-        return false;
-    }
-
-    /**
      * Monitors a directory for file changes, new files and file
      * deletions.
      * @param {string} dir Directory to monitor
      */
     private monitor(dir:string):void{
-        this.io.watchDirectory(dir, (f:string|object, curr, prev)=>{
+        IO.watchDirectory(dir, (f:string|object, curr, prev)=>{
 			if (typeof f == "object" && prev === null && curr === null) {
 				// Finished walking the tree
 				console.log("Directory monitor ready");
@@ -155,7 +107,7 @@ export default class Explorer{
 				// f is a new file
                 let index:number = this.findFile(f.toString());
 				if(index == -1){
-                    let file:NotableFile = this.io.fileFromPath(f.toString(),curr);
+                    let file:NotableFile = IO.fileFromPath(f.toString(),curr);
                     let fileNode:FileNode = this.createFileNode(file);
                     let inserted:boolean = false;
 
@@ -174,7 +126,7 @@ export default class Explorer{
                     }
                 }else{
                     this.fileNodes[index].file = 
-                        this.io.fileFromPath(f.toString(), curr);
+                        IO.fileFromPath(f.toString(), curr);
                 }
 			} else if (curr.nlink === 0) {
 				// f was removed
@@ -191,10 +143,10 @@ export default class Explorer{
                 let index:number = this.findFile(f.toString());
                 if(index != -1){
                     this.fileNodes[index].file = 
-                        this.io.fileFromPath(f.toString(), curr);
+                        IO.fileFromPath(f.toString(), curr);
                     this.trigger('changed',
                         this.fileNodes[index].file,
-                        this.io.openFile(this.fileNodes[index].file.name)
+                        IO.openFile(this.fileNodes[index].file.name)
                     );
                 }
 			}
@@ -222,7 +174,7 @@ export default class Explorer{
      */
     private scanFolder(dir:string):FileNode[]{
         // Get all files in the current working directory
-        let files:NotableFile[] = this.io.filesInDirectory(dir);
+        let files:NotableFile[] = IO.filesInDirectory(dir);
         let fileNodes:FileNode[] = [];
         // Render and store files
         for (var i = 0; i < files.length; i++) {
@@ -234,32 +186,35 @@ export default class Explorer{
     private openDirectory(dirPath:string):void{
         // Scan the new folder
         this.fileNodes = this.scanFolder(dirPath);
-        // Create a new root
-        let newRoot:HTMLUListElement = this.renderExplorer(this.fileNodes);
-        newRoot.classList.add("animateIn");
-        this.base.appendChild(newRoot);
-        
+        this.sortFiles();        
         this.updateNavigator(dirPath);
 
-        // TODO: find it again?
-        newRoot = <HTMLUListElement> document.querySelector('.animateIn');
-        // Old root animate out
-        this.root.classList.add('animateOut');
+        // Create a new root
+        let newRoot:HTMLUListElement = this.renderExplorer(this.fileNodes);
+        this.base.appendChild(newRoot);
         
-        // Timeout needed for some wierd reason
-        setTimeout(()=>{
-            // Animate new root in
-            newRoot.classList.remove('animateIn');
-        },5);
+        if(this.root != undefined){
+            newRoot.classList.add("animateIn");
+            // TODO: find it again?
+            newRoot = <HTMLUListElement> document.querySelector('.animateIn');
+            // Old root animate out
+            this.root.classList.add('animateOut');
+            
+            // Timeout needed for some wierd reason
+            setTimeout(()=>{
+                // Animate new root in
+                newRoot.classList.remove('animateIn');
+            },5);
+            
+            // Switch roots
+            let oldRoot:HTMLUListElement = this.root;
+
+            oldRoot.addEventListener("transitionend", function(event) {
+                oldRoot.outerHTML = '';
+            }, false);
+        }
         
-        // Switch roots
-        let oldRoot:HTMLUListElement = this.root;
         this.root = newRoot;
-
-        oldRoot.addEventListener("transitionend", function(event) {
-            oldRoot.outerHTML = '';
-        }, false);
-
         this.currentPath = dirPath;        
     }
 
@@ -270,6 +225,7 @@ export default class Explorer{
 
         this.updateNavigator(dirPath);
         this.fileNodes = this.scanFolder(dirPath);
+        this.sortFiles();        
         let newRoot:HTMLUListElement = this.renderExplorer(this.fileNodes);
         newRoot.classList.add("animateOut");
         this.base.appendChild(newRoot);
@@ -328,6 +284,10 @@ export default class Explorer{
         }
     }
 
+    public save(filePath:string,contents:string):void{
+        IO.saveFile(filePath, contents);
+    }
+
     private createFileNode(file:NotableFile):FileNode{
         let filenode:FileNode = new FileNode(file);
         filenode.on('click',(filenode:FileNode)=>{
@@ -340,7 +300,7 @@ export default class Explorer{
                 this.trigger(
                     'open', 
                     filenode.file, 
-                    this.io.openFile(filenode.file.name)
+                    IO.openFile(filenode.file.name)
                 );
             }else{
                 this.openDirectory(filenode.file.name);
@@ -348,9 +308,16 @@ export default class Explorer{
         });
 
         filenode.on('delete',(filenode:FileNode)=>{
-            if(confirm("Are you sure you want to delete this file? This cannot be undone.")){
-                filenode.fileRemoved();
-                this.io.deleteFile(filenode.file.name);
+            if(!filenode.file.stat.isDirectory()){
+                if(confirm("Are you sure you want to delete this file? This cannot be undone.")){
+                    filenode.fileRemoved();
+                    IO.deleteFile(filenode.file.name);
+                }
+            }else{
+                if(confirm("Are you sure you want to delete this folder and all its contents? This cannot be undone.")){
+                    filenode.fileRemoved();
+                    IO.deleteFolder(filenode.file.name);
+                }
             }
         });
 
@@ -368,7 +335,7 @@ export default class Explorer{
                 preview:filenode.file.preview,
             };
 
-            this.io.rename(filenode.file.name, newFile.name);
+            IO.rename(filenode.file.name, newFile.name);
             this.trigger('rename',
                 filenode.file, newFile.name
             );
@@ -395,11 +362,14 @@ export default class Explorer{
      * @return {number} Should come before, after, doesn't matter
      */
     private sorter(a:FileNode, b:FileNode):number{
+        if(a.file.stat.isDirectory() && !b.file.stat.isDirectory()){
+            return -1;
+        }else if(!a.file.stat.isDirectory() && b.file.stat.isDirectory()){
+            return 1;
+        }
+
         if(!this.sortalpha){
             // Time sort
-            if(a.file.stat.isDirectory()){
-                return -1;
-            }
             return b.file.stat.mtime.getTime() - a.file.stat.mtime.getTime();
         }
     

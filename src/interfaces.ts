@@ -1,11 +1,20 @@
+
 export interface EditorModule{
     name:string;
     enabled:boolean;
     preview(plaintext:string):string;
 }
 
+export interface CodeMirror{
+    on:(trigger:string,callback:(editor:any,change?:any)=>any)=>any;
+    options:{
+        extraKeys:any;
+    };
+    setOption:(option:string,options:any)=>any;
+}
+
 export interface SimpleMDE{
-    codemirror:object;
+    codemirror:CodeMirror;
     element:HTMLElement;
     gui:object;
     options:{
@@ -18,7 +27,7 @@ export interface SimpleMDE{
     togglePreview():void;
     isFullscreenActive():boolean;
     toggleFullScreen():void;
-    value:(contents:string) => string;
+    value:(contents?:string) => string;
 }
 
 export interface NotableFile{
