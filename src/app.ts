@@ -12,6 +12,7 @@ import TitleBar from './modules/application/TitleBar/TitleBar';
 import Explorer from './modules/application/Explorer/Explorer';
 import Editor from './modules/application/Editor/Editor';
 import InputWatch from './helpers/inputwatch';
+import Events from './helpers/Events';
 
 import {
 	EditorModule,
@@ -46,13 +47,13 @@ namespace Notable {
 			this.explorer = new Explorer(this.startingPath);
 
 			// When the user opens a file
-			this.explorer.on('open',(file:NotableFile, contents:string) => {
+			Events.on('explorer.open',(file:NotableFile, contents:string) => {
 				this.editor.openFile(
 					file.name.replace(this.startingPath,''), contents);	
 			});
 
 			// If the file doesn't exist anymore
-			this.explorer.on('deleted',(file:NotableFile) => {
+			Events.on('explorer.deleted',(file:NotableFile) => {
 				if(this.openedFile != null && file.name == this.openedFile.name){
 					this.editor.deletedFile();
 					this.openedFile = null;
@@ -61,7 +62,7 @@ namespace Notable {
 			});
 
 			// The file was renamed
-			this.explorer.on('rename',(file:NotableFile, newName:string) =>{
+			Events.on('explorer.rename',(file:NotableFile, newName:string) =>{
 				if(this.openedFile != null && file.name == this.openedFile.name){
 					this.openedFile = file;
 					this.editor.openedFile = file.name.replace(this.startingPath,'');
@@ -69,7 +70,7 @@ namespace Notable {
 			});
 
 			// The user is typing...
-			this.editor.on('change',()=>{
+			Events.on('editor.change',()=>{
 				clearTimeout(this.saveIntervals);
                 this.saveIntervals = setTimeout(() => {
                     this.saveCurrentFile(true);

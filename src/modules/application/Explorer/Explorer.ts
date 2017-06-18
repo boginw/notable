@@ -7,16 +7,9 @@ import {
     NoteBook
 } from '../../../interfaces';
 import TimeAgo from '../../../helpers/timeago';
+import Events from '../../../helpers/Events';
 import IO from '../IO/IO';
 import FileNode from './FileNode';
-
-interface ExplorerEvents{
-    open:((notableFile:NotableFile, contents:string) => any)[];
-    change:((notableFile:NotableFile, contents:string) => any)[];
-    new:((notableFile:NotableFile, contents:string) => any)[];
-    deleted:((notableFile:NotableFile, contents:string) => any)[];
-    rename:((notableFile:NotableFile, contents:string) => any)[];
-}
 
 export default class Explorer{
     private defaultPath:string;
@@ -24,7 +17,7 @@ export default class Explorer{
     private base:HTMLDivElement;
     private root:HTMLUListElement;
     private fileNodes:FileNode[] = [];
-    private explorerEvents:ExplorerEvents;
+    private fileTree:FileNode[] = [];
     // Sort by date?
     // TODO: move this elsewhere (preferably in a persiatant form)
     private sortalpha:boolean = true;
@@ -35,6 +28,7 @@ export default class Explorer{
      *                             should start 
      */
     constructor(defaultPath:string){
+
         this.defaultPath = defaultPath;
         // Find our base for files and folders
         this.base = <HTMLDivElement> document.querySelector('.folders_and_files');
@@ -44,14 +38,6 @@ export default class Explorer{
             throw "Could not ensure that " + defaultPath + " exists...";
         }
 
-        this.explorerEvents = {
-            open:new Array<(notableFile:NotableFile, contents:string) => any>(0),
-            change:new Array<(notableFile:NotableFile, contents:string) => any>(0),
-            new:new Array<(notableFile:NotableFile, contents:string) => any>(0),
-            deleted:new Array<(notableFile:NotableFile, contents:string) => any>(0),
-            rename:new Array<(notableFile:NotableFile, contents:string) => any>(0),
-        };
-
         let homeDirNavigation:HTMLDivElement = 
             <HTMLDivElement> document.querySelector('.pathItem.home');
         
@@ -60,39 +46,69 @@ export default class Explorer{
         }
         this.currentPath = defaultPath;
 
-        this.openDirectory(defaultPath);
+        this.monitor(defaultPath);
+        this.fileEvents();
+
+        //this.openDirectory(defaultPath);
     }
 
-    /**
-     * Subscribe function to a specific event
-     * @param {string} event Event to listen to
-     * @param {anonymous function} trigger The trigger callback
-     */
-    public on(event:string,trigger:(notableFile:NotableFile, contents:string) => void):void{
-        // Check if the event exists
-        if(this.explorerEvents[event] == undefined){
-            return;
-        }
-        // Subscribe
-        this.explorerEvents[event].push(trigger);
+    private fileEvents():void{
+
+        Events.on('file.click',(filenode:FileNode)=>{
+
+            if(!filenode.file.stat.isDirectory()){
+                Events.trigger('explorer.open', 
+                    filenode.file, 
+                    IO.openFile(filenode.file.name)
+                );
+
+                this.fileTree.forEach(element => {
+                    element.setOpen(false);
+                });
+                filenode.setOpen(true);
+            }else{
+                this.openDirectory(filenode.file.name);
+            }
+        });
+
+        Events.on('file.delete',(filenode:FileNode)=>{
+            if(!filenode.file.stat.isDirectory()){
+                if(confirm("Are you sure you want to delete this file? This cannot be undone.")){
+                    filenode.fileRemoved();
+                    IO.deleteFile(filenode.file.name);
+                }
+            }else{
+                if(confirm("Are you sure you want to delete this folder and all its contents? This cannot be undone.")){
+                    filenode.fileRemoved();
+                    IO.deleteFolder(filenode.file.name);
+                }
+            }
+        });
+
+        Events.on('file.rename',(filenode:FileNode, contents:string)=>{
+            let pathArray:string[] = filenode.file.name.split(path.sep);
+            pathArray.pop();
+            pathArray.push(contents);
+            
+            let newFile:NotableFile = <NotableFile>{
+                name:pathArray.join(path.sep),
+                extension:filenode.file.extension,
+                stat:filenode.file.stat,
+                open:filenode.file.open,
+                childrens:filenode.file.childrens,
+                preview:filenode.file.preview,
+            };
+
+            IO.rename(filenode.file.name, newFile.name);
+            Events.trigger('rename',
+                filenode.file, newFile.name
+            );
+            filenode.file = newFile;
+        });
     }
 
-    /**
-     * Triggers a file related event 
-     * @param {string} event Event to trigger
-     * @param {NotableFile} notableFile File involved in the triggering
-     * @param {string} contents Contents of the file triggered
-     */
-    public trigger(event:string, notableFile:NotableFile, contents?:string):void{
-        // Ensure that the event exists
-        if(this.explorerEvents[event] !== undefined){
-            // Trigger all subscribers 
-            this.explorerEvents[event].forEach(element => {
-                element(notableFile, contents);
-            });
-        }
-    }
 
+    // TODO: needs more abstraction
     /**
      * Monitors a directory for file changes, new files and file
      * deletions.
@@ -103,6 +119,14 @@ export default class Explorer{
 			if (typeof f == "object" && prev === null && curr === null) {
 				// Finished walking the tree
 				console.log("Directory monitor ready");
+                this.fileTree = [];
+
+                for(var key in f){
+                    this.fileTree.push(
+                        this.createFileNode(IO.fileFromPath(key, f[key])));
+                }
+
+                this.openDirectory(dir);
 			} else if (prev === null) {
 				// f is a new file
                 let index:number = this.findFile(f.toString());
@@ -111,42 +135,44 @@ export default class Explorer{
                     let fileNode:FileNode = this.createFileNode(file);
                     let inserted:boolean = false;
 
-                    for (var i = 0; i < this.fileNodes.length; i++) {
-                        if(this.sorter(fileNode, this.fileNodes[i]) == -1){
-                            this.root.insertBefore(fileNode.node, this.fileNodes[i].node);
-                            inserted = true;
-                            this.fileNodes.splice(i, 0, fileNode);
-                            break;
+                    if(path.dirname(file.name) == this.currentPath){
+                        for (var i = 0; i < this.fileNodes.length; i++) {
+                            if(this.sorter(fileNode, this.fileNodes[i]) == -1){
+                                this.root.insertBefore(fileNode.node, this.fileNodes[i].node);
+                                inserted = true;
+                                this.fileNodes.splice(i, 0, fileNode);
+                                break;
+                            }
+                        }
+                        if(!inserted){
+                            this.root.appendChild(fileNode.node);
                         }
                     }
 
-                    if(!inserted){
-                        this.fileNodes.push(fileNode);
-                        this.root.appendChild(fileNode.node);
-                    }
+                    this.fileTree.push(fileNode);
                 }else{
-                    this.fileNodes[index].file = 
+                    this.fileTree[index].file = 
                         IO.fileFromPath(f.toString(), curr);
                 }
 			} else if (curr.nlink === 0) {
 				// f was removed
                 let index:number = this.findFile(f.toString());
                 if(index != -1){
-                    this.fileNodes[index].fileRemoved();
-                    this.trigger('deleted',
-                        this.fileNodes[index].file,
+                    this.fileTree[index].fileRemoved();
+                    Events.trigger('deleted',
+                        this.fileTree[index].file,
                     );
-                    this.fileNodes.splice(index,1);
+                    this.fileTree.splice(index,1);
                 }
 			} else {
 				// f was changed
                 let index:number = this.findFile(f.toString());
                 if(index != -1){
-                    this.fileNodes[index].file = 
+                    this.fileTree[index].file = 
                         IO.fileFromPath(f.toString(), curr);
-                    this.trigger('changed',
-                        this.fileNodes[index].file,
-                        IO.openFile(this.fileNodes[index].file.name)
+                    Events.trigger('changed',
+                        this.fileTree[index].file,
+                        IO.openFile(this.fileTree[index].file.name)
                     );
                 }
 			}
@@ -160,8 +186,8 @@ export default class Explorer{
      * @return {number} Index of file in array, or -1 if not found
      */
     private findFile(filePath:string):number{
-        for (var i = 0; i < this.fileNodes.length; i++) {
-            if(this.fileNodes[i].file.name == filePath){
+        for (var i = 0; i < this.fileTree.length; i++) {
+            if(this.fileTree[i].file.name == filePath){
                 return i;
             }
         }
@@ -183,17 +209,22 @@ export default class Explorer{
         return fileNodes;
     }
 
+    // TODO: merge with closeDirectory
     private openDirectory(dirPath:string):void{
         // Scan the new folder
-        this.fileNodes = this.scanFolder(dirPath);
+        this.fileNodes = this.fileTree.filter((fileNode:FileNode):boolean => {
+            return path.dirname(fileNode.file.name) == dirPath;
+        });
+
         this.sortFiles();        
         this.updateNavigator(dirPath);
 
         // Create a new root
         let newRoot:HTMLUListElement = this.renderExplorer(this.fileNodes);
         this.base.appendChild(newRoot);
-        
+
         if(this.root != undefined){
+        
             newRoot.classList.add("animateIn");
             // TODO: find it again?
             newRoot = <HTMLUListElement> document.querySelector('.animateIn');
@@ -210,7 +241,7 @@ export default class Explorer{
             let oldRoot:HTMLUListElement = this.root;
 
             oldRoot.addEventListener("transitionend", function(event) {
-                oldRoot.outerHTML = '';
+                oldRoot.remove();
             }, false);
         }
         
@@ -224,7 +255,11 @@ export default class Explorer{
         }
 
         this.updateNavigator(dirPath);
-        this.fileNodes = this.scanFolder(dirPath);
+        
+        this.fileNodes = this.fileTree.filter((fileNode:FileNode):boolean => {
+            return path.dirname(fileNode.file.name) == dirPath;
+        });
+
         this.sortFiles();        
         let newRoot:HTMLUListElement = this.renderExplorer(this.fileNodes);
         newRoot.classList.add("animateOut");
@@ -245,7 +280,7 @@ export default class Explorer{
         this.root = newRoot;
 
         oldRoot.addEventListener("transitionend", function(event) {
-            oldRoot.outerHTML = '';
+            oldRoot.remove();
         }, false);
 
         this.currentPath = dirPath;        
@@ -290,59 +325,6 @@ export default class Explorer{
 
     private createFileNode(file:NotableFile):FileNode{
         let filenode:FileNode = new FileNode(file);
-        filenode.on('click',(filenode:FileNode)=>{
-            this.fileNodes.forEach(element => {
-                element.setOpen(false);
-            });
-            filenode.setOpen(true);
-
-            if(!filenode.file.stat.isDirectory()){
-                this.trigger(
-                    'open', 
-                    filenode.file, 
-                    IO.openFile(filenode.file.name)
-                );
-            }else{
-                this.openDirectory(filenode.file.name);
-            }
-        });
-
-        filenode.on('delete',(filenode:FileNode)=>{
-            if(!filenode.file.stat.isDirectory()){
-                if(confirm("Are you sure you want to delete this file? This cannot be undone.")){
-                    filenode.fileRemoved();
-                    IO.deleteFile(filenode.file.name);
-                }
-            }else{
-                if(confirm("Are you sure you want to delete this folder and all its contents? This cannot be undone.")){
-                    filenode.fileRemoved();
-                    IO.deleteFolder(filenode.file.name);
-                }
-            }
-        });
-
-        filenode.on('rename',(filenode:FileNode, contents:string)=>{
-            let pathArray:string[] = filenode.file.name.split(path.sep);
-            pathArray.pop();
-            pathArray.push(contents);
-            
-            let newFile:NotableFile = <NotableFile>{
-                name:pathArray.join(path.sep),
-                extension:filenode.file.extension,
-                stat:filenode.file.stat,
-                open:filenode.file.open,
-                childrens:filenode.file.childrens,
-                preview:filenode.file.preview,
-            };
-
-            IO.rename(filenode.file.name, newFile.name);
-            this.trigger('rename',
-                filenode.file, newFile.name
-            );
-            filenode.file = newFile;
-
-        });
-
         return filenode;
     }
 

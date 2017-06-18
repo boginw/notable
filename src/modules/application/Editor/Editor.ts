@@ -7,17 +7,14 @@ import {
     EditorModule,
 } from '../../../interfaces';
 import Toolbar from './Toolbar';
+import Events from '../../../helpers/Events';
 
-interface EditorEvents{
-    change:(() => any)[];
-}
 
-export default class Editor {
+export default class Editor{
     private md: SimpleMDE;
     private savedUnsaved: HTMLSpanElement;
     private supressChange: boolean = false;
     private openedFileNode: HTMLSpanElement;
-    private editorEvents: EditorEvents;
     private modules:EditorModule[];
 
     public set openedFile(filename: string) {
@@ -37,9 +34,6 @@ export default class Editor {
     }
 
     constructor() {
-        this.editorEvents = {
-            change:new Array<() => any>(0),
-        };
 
         this.openedFileNode = <HTMLSpanElement>
             document.querySelector('div.header-section > .text span:nth-child(1)');
@@ -64,39 +58,8 @@ export default class Editor {
 
         this.codeMirrorEvents();
 
-
         // Load modules
         this.modules = this.loadModules(__dirname);
-    }
-
-        /**
-     * Subscribe function to a specific event
-     * @param {string} event Event to listen to
-     * @param {anonymous function} trigger The trigger callback
-     */
-    public on(event:string,trigger:() => void):void{
-        // Check if the event exists
-        if(this.editorEvents[event] == undefined){
-            return;
-        }
-        // Subscribe
-        this.editorEvents[event].push(trigger);
-    }
-
-    /**
-     * Triggers a file related event 
-     * @param {string} event Event to trigger
-     * @param {NotableFile} notableFile File involved in the triggering
-     * @param {string} contents Contents of the file triggered
-     */
-    public trigger(event:string):void{
-        // Ensure that the event exists
-        if(this.editorEvents[event] !== undefined){
-            // Trigger all subscribers 
-            this.editorEvents[event].forEach(element => {
-                element();
-            });
-        }
     }
 
     public openFile(filename: string, contents: string) {
@@ -124,7 +87,7 @@ export default class Editor {
     private codeMirrorEvents(): void {
         this.md.codemirror.on('change', (editor, change) => {
             if (!this.supressChange) {
-                this.trigger('change');
+                Events.trigger('editor.change');
                 this.saved = false;
             } else {
                 this.saved = true;
@@ -150,6 +113,7 @@ export default class Editor {
     private loadModules(pathToThis:string): EditorModule[]{
         // Get the path to the modules/editor folder	
         let editorModulesFolder:string = path.join(pathToThis, "modules/editor");
+        // TODO: use IO instead of fs
         // Get all folders in modules/editor
         let folders:string[] = fs.readdirSync(editorModulesFolder)
             .filter((file:any) => fs.statSync(path.join(editorModulesFolder, file)).isDirectory());

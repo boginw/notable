@@ -7,20 +7,7 @@ import {
 	NotableFile,
 } from '../../../interfaces';
 import TimeAgo from '../../../helpers/timeago';
-
-interface FileNodeEvents{
-    click:((filenode:FileNode, contents?:string) => any)[];
-    dblclick:((filenode:FileNode, contents?:string) => any)[];
-    contextmenu:((filenode:FileNode, contents?:string) => any)[];
-    dragstart:((filenode:FileNode, contents?:string) => any)[];
-    dragover:((filenode:FileNode, contents?:string) => any)[];
-    dragenter:((filenode:FileNode, contents?:string) => any)[];
-    drop:((filenode:FileNode, contents?:string) => any)[];
-    newFile:((filenode:FileNode, contents?:string) => any)[];
-    newFolder:((filenode:FileNode, contents?:string) => any)[];
-    delete:((filenode:FileNode, contents?:string) => any)[];
-    rename:((filenode:FileNode, contents?:string) => any)[];
-}
+import Events from '../../../helpers/Events';
 
 export default class FileNode{
     public node: HTMLLIElement;
@@ -28,7 +15,6 @@ export default class FileNode{
     private ta:TimeAgo;
     private _open:boolean;
     private base:HTMLLIElement;
-    private fileEvents:FileNodeEvents;
     private renameInput:HTMLInputElement;
 
     get file():NotableFile {
@@ -60,20 +46,6 @@ export default class FileNode{
         // For "time ago" strings
         this.ta = new TimeAgo();
 
-        this.fileEvents = {
-            click:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            dblclick:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            contextmenu:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            dragstart:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            dragover:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            dragenter:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            drop:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            newFile:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            newFolder:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            delete:new Array<(filenode:FileNode, contents?:string) => any>(0),
-            rename:new Array<(filenode:FileNode, contents?:string) => any>(0),
-        };
-
         // Base should only be created once
         this.base = document.createElement('li');
 
@@ -98,59 +70,34 @@ export default class FileNode{
     }
 
     /**
-     * Subscribe to specific event
-     * @param {string} event Event to subscribe to
-     * @param {anonymous function} trigger Trigger callback
-     */
-    public on(event:string,trigger:(filenode:FileNode, contents?:string) => void):void{
-        if(this.fileEvents[event] == undefined){
-            return;
-        }
-
-        this.fileEvents[event].push(trigger);
-    }
-
-    /**
-     * Trigger specific event
-     * @param {string} event Event to trigger
-     */
-    public trigger(event:string, contents?:string):void{
-        if(this.fileEvents[event] != undefined){
-             this.fileEvents[event].forEach(element => {
-                element(this,contents);
-            });
-        }
-    }
-
-    /**
      * Set file related events
      */
     private setEvents():void{
         // Click events
         this.base.onclick = () => {
-            this.trigger('click');
+            Events.trigger('file.click', this);
         };
         this.base.ondblclick = () => {
             this.renameFile();
-            this.trigger('dbclick');
+            Events.trigger('file.dbclick', this);
         };
         this.base.oncontextmenu = () => {
-            this.trigger('contextmenu');
+            Events.trigger('file.contextmenu', this);
             this.rightclick();
         };
         
         // Drag events
         this.base.ondragstart = () => {
-            this.trigger('dragstart');
+            Events.trigger('file.dragstart', this);
         };
         this.base.ondragover = () => {
-            this.trigger('dragover');
+            Events.trigger('file.dragover', this);
         };
         this.base.ondragenter = () => {
-            this.trigger('dragenter');
+            Events.trigger('file.dragenter', this);
         };
         this.base.ondrop = () => {
-            this.trigger('drop');
+            Events.trigger('file.drop', this);
         };
 
         // Rename events
@@ -160,7 +107,7 @@ export default class FileNode{
 
         inputField.addEventListener('keypress',(ev:KeyboardEvent)=>{
             if(ev.keyCode == 13){
-                this.trigger('rename', inputField.value + this.file.extension);
+                Events.trigger('file.rename', this, inputField.value + this.file.extension);
                 this.renameFileBlur();
             }
         },true);
@@ -180,7 +127,7 @@ export default class FileNode{
                     label: 'New Note',
                     role: 'new',
                     click: () => {
-                        this.trigger('newFile')
+                        Events.trigger('file.newFile')
                     },
                 }, {
                     label: 'Rename',
@@ -192,14 +139,14 @@ export default class FileNode{
                     label: 'New Folder',
                     role: 'newFolder',
                     click: () => {
-                        this.trigger('newFolder')
+                        Events.trigger('file.newFolder')
                     },
                     
                 }, {
                     label: 'Delete Folder',
                     role: 'delFolder',
                     click: ()=>{
-                        this.trigger('delete')
+                        Events.trigger('file.delete', this);
                     },
                     
                 }, {
@@ -219,7 +166,7 @@ export default class FileNode{
                     label: 'Delete',
                     role: 'deleteFile',
                     click: ()=>{
-                        this.trigger('delete')
+                        Events.trigger('file.delete', this);
                     },
                 }, {
                     type: 'separator',
