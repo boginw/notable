@@ -1,4 +1,5 @@
 const { remote } = require('electron');
+const { Menu } = remote;
 const path = require('path');
 
 import {
@@ -44,11 +45,38 @@ export default class Explorer{
         homeDirNavigation.onclick = () => {
             this.closeDirectory(this.defaultPath);
         }
+
+        this.base.addEventListener('contextmenu',(ev:PointerEvent)=>{
+            if(ev.srcElement == this.root){
+                Menu.buildFromTemplate([
+                    {
+                        label: 'New Note',
+                        role: 'new',
+                        click: () => {
+                            Events.trigger('file.newFile')
+                        },
+                    }, {
+                        label: 'New Folder',
+                        role: 'newFolder',
+                        click: () => {
+                            Events.trigger('file.newFolder')
+                        },
+                    }, {
+                        type: 'separator',
+                    }, {
+                        label: 'Folder Properties',
+                        role: 'propFolder',
+                    }
+                ]).popup(remote.getCurrentWindow());
+            }
+        },true);
+
         this.currentPath = defaultPath;
 
         this.monitor(defaultPath);
         this.fileEvents();
 
+        // Maybe activate this again later
         //this.openDirectory(defaultPath);
     }
 

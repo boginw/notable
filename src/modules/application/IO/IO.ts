@@ -38,10 +38,18 @@ export default class IO{
 		});
 	}
 
+	/**
+	 * Deletes a file
+	 * @param {string} path File to delete
+	 */
 	public static deleteFile(path:string):void{
 		fs.unlinkSync(path);
 	}
 
+	/**
+	 * Recursively deletes a folder (DO NOT USE OUTSIDE NOTE ENVIROMENT!)
+	 * @param {string} dirPath Folder to delete
+	 */
 	public static deleteFolder(dirPath:string):void{
 		if( fs.existsSync(dirPath) ) {
 			fs.readdirSync(dirPath).forEach((file,index)=>{
@@ -88,13 +96,18 @@ export default class IO{
         return false;
     }
 
+	/**
+	 * Renames (moves) a file or folder
+	 * @param {string} filePath Path to file or folder
+	 * @param {string} newName The new path to file or folder
+	 */
 	public static rename(filePath:string, newName:string){
 		fs.renameSync(filePath, newName);
 	}
 
 	/**
 	 * Creates a folder
-	 * @param path Path to the folder to create
+	 * @param {string} path Path to the folder to create
 	 */
 	public static createFolder(path:string):void{
 		fs.mkdirSync(path);
@@ -132,6 +145,12 @@ export default class IO{
 		return String(buffer).replace(/\n/gm," ").replace(/\0/g,'');
 	}
 
+	/**
+	 * Watches directory for any changes made
+	 * @param dirPath Directory to watch
+	 * @param callback A callback method which will be called
+	 * every time there's a change
+	 */
 	public static watchDirectory(dirPath:string, callback:(f:any, curr:any, prev:any) => any):void{
 		watch.watchTree(dirPath, callback);
 	}

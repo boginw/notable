@@ -31,17 +31,21 @@
     "@types/codemirror": "0.0.40",
     "codemirror-widgets": "^1.4.2",
     "fs-jetpack": "^0.10.2",
+    "install": "^0.10.1",
     "katex": "^0.7.1",
     "material-icons": "^0.1.0",
+    "npm": "^5.0.3",
     "run-sequence": "^1.2.2",
     "simplemde": "^1.11.2",
     "typescript": "^2.2.1",
-    "watch": "^1.0.2"
+    "watch": "^1.0.2",
+    "webdriverio": "^4.8.0"
   },
   "devDependencies": {
     "@types/electron": "^1.4.33",
     "@types/node": "^7.0.7",
     "chai": "^3.5.0",
+    "chai-as-promised": "^7.0.0",
     "electron": "^1.6.10",
     "electron-builder": "^8.6.0",
     "electron-mocha": "^3.0.0",

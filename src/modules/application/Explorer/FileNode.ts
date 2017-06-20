@@ -124,15 +124,15 @@ export default class FileNode{
         if(this.file.stat.isDirectory()){
             Menu.buildFromTemplate([
                 {
-                    label: 'New Note',
-                    role: 'new',
-                    click: () => {
-                        Events.trigger('file.newFile')
-                    },
-                }, {
                     label: 'Rename',
                     role: 'rename',
                     click: this.renameFile(),
+                }, {
+                    label: 'Delete Folder',
+                    role: 'delFolder',
+                    click: ()=>{
+                        Events.trigger('file.delete', this);
+                    },    
                 }, {
                     type: 'separator',
                 }, {
@@ -141,14 +141,12 @@ export default class FileNode{
                     click: () => {
                         Events.trigger('file.newFolder')
                     },
-                    
                 }, {
-                    label: 'Delete Folder',
-                    role: 'delFolder',
-                    click: ()=>{
-                        Events.trigger('file.delete', this);
+                    label: 'New Note',
+                    role: 'new',
+                    click: () => {
+                        Events.trigger('file.newFile')
                     },
-                    
                 }, {
                     type: 'separator',
                 }, {
@@ -167,6 +165,20 @@ export default class FileNode{
                     role: 'deleteFile',
                     click: ()=>{
                         Events.trigger('file.delete', this);
+                    },
+                }, {
+                    type: 'separator',
+                }, {
+                    label: 'New Folder',
+                    role: 'newFolder',
+                    click: () => {
+                        Events.trigger('file.newFolder')
+                    },
+                }, {
+                    label: 'New Note',
+                    role: 'new',
+                    click: () => {
+                        Events.trigger('file.newFile')
                     },
                 }, {
                     type: 'separator',
@@ -241,15 +253,21 @@ export default class FileNode{
 
         title.appendChild(this.renameInput);
         
+        let timeAgo:string = this.ta.ago(new Date(file.stat.mtime));
         // Only files have preview and lastmod
         if(!file.stat.isDirectory()){
             // Time ago since file was created
-            let timeAgo:string = this.ta.ago(new Date(file.stat.mtime));
             title.innerHTML += `
                 <div class="fileDetails">
                     <div class="lastMod">${timeAgo}</div>
                     <div class="filePrev">${file.preview}</div>
                 </div>`;
+        }else{
+            /*title.innerHTML += `
+                <div class="fileDetails">
+                    <div class="lastMod">${timeAgo}</div>
+                    <div class="filePrev">12 notes in notebook</div>
+                </div>`;*/
         }
         
         contents.appendChild(title);

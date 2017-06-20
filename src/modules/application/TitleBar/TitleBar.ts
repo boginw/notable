@@ -95,20 +95,26 @@ export default class TitleBar{
 		maximize.className = `button-fullscreen enabled 
 			${(this.isWindows ? 'windows-button' : 'button')}`;
 		maximize.innerHTML = '<div class="icon"></div>';
-		maximize.onclick = this.handleFullscreen;
+		maximize.onclick = () => {
+			this.handleFullscreen();
+		};
 
 		// Minimize
 		let minimize:HTMLDivElement = document.createElement('div');
 		minimize.className = `button-minimize enabled 
 			${(this.isWindows ? 'windows-button' : 'button')}`;
 		minimize.innerHTML = '<div class="icon"></div>';
-		minimize.onclick = this.handleMinimize;
+		minimize.onclick = () => {
+			this.handleMinimize();
+		};
 
 		// Close button
 		let close:HTMLDivElement = document.createElement('div');
 		close.className = `button-close enabled 
 			${(this.isWindows ? 'windows-button' : 'button')}`;
-		close.onclick = this.handleClose;
+		close.onclick = () => {
+			this.handleClose();
+		};
 
 		// The order is important to get right (Mac users get crazy)
 		if(this.isWindows){

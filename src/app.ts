@@ -49,7 +49,8 @@ namespace Notable {
 			// When the user opens a file
 			Events.on('explorer.open',(file:NotableFile, contents:string) => {
 				this.editor.openFile(
-					file.name.replace(this.startingPath,''), contents);	
+					file.name.replace(this.startingPath,''), contents);
+				this.openedFile = file;
 			});
 
 			// If the file doesn't exist anymore
@@ -79,6 +80,7 @@ namespace Notable {
 		}
 
 		private saveCurrentFile(ignoreDialog?:boolean){
+			console.log(this.openedFile);
 			if(this.openedFile == null){
 				if(!ignoreDialog){
 					var filter = [{name:"Markdown", extensions: ["md"]}];

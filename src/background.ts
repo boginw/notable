@@ -27,7 +27,7 @@ var setApplicationMenu = function () {
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
-if (env.name !== 'production') {
+if (env.name !== 'production' && app) {
     var userDataPath = app.getPath('userData');
     app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
