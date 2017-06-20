@@ -46,19 +46,33 @@ export default class Explorer{
             this.closeDirectory(this.defaultPath);
         }
 
-        this.base.addEventListener('contextmenu',(ev:PointerEvent)=>{
-            if(ev.srcElement == this.root){
+        this.emptyContextMenu(this.base);
+
+        this.currentPath = defaultPath;
+
+        this.monitor(defaultPath);
+        this.fileEvents();
+
+        // Maybe activate this again later
+        //this.openDirectory(defaultPath);
+    }
+
+    private emptyContextMenu(base:HTMLElement,strict:boolean = true){
+        base.addEventListener('contextmenu',(ev:PointerEvent)=>{
+            if(ev.srcElement == this.root || !strict){
                 Menu.buildFromTemplate([
                     {
                         label: 'New Note',
                         role: 'new',
                         click: () => {
+                            this.newFile();
                             Events.trigger('file.newFile')
                         },
                     }, {
                         label: 'New Folder',
                         role: 'newFolder',
                         click: () => {
+                            this.newFile(false);
                             Events.trigger('file.newFolder')
                         },
                     }, {
@@ -70,33 +84,34 @@ export default class Explorer{
                 ]).popup(remote.getCurrentWindow());
             }
         },true);
+    }
 
-        this.currentPath = defaultPath;
+    private newFile(isFile:boolean = true):void{
+        let newFile:FileNode = new FileNode(isFile);
 
-        this.monitor(defaultPath);
-        this.fileEvents();
+        this.root.appendChild(newFile.node);
+    }
 
-        // Maybe activate this again later
-        //this.openDirectory(defaultPath);
+    private clickFile(filenode:FileNode):void{
+        if(!filenode.file.stat.isDirectory()){
+            Events.trigger('explorer.open', 
+                filenode.file, 
+                IO.openFile(filenode.file.name)
+            );
+
+            this.fileTree.forEach(element => {
+                element.setOpen(false);
+            });
+            filenode.setOpen(true);
+        }else{
+            this.openDirectory(filenode.file.name);
+        }
     }
 
     private fileEvents():void{
 
         Events.on('file.click',(filenode:FileNode)=>{
-
-            if(!filenode.file.stat.isDirectory()){
-                Events.trigger('explorer.open', 
-                    filenode.file, 
-                    IO.openFile(filenode.file.name)
-                );
-
-                this.fileTree.forEach(element => {
-                    element.setOpen(false);
-                });
-                filenode.setOpen(true);
-            }else{
-                this.openDirectory(filenode.file.name);
-            }
+            this.clickFile(filenode);
         });
 
         Events.on('file.delete',(filenode:FileNode)=>{
@@ -118,8 +133,18 @@ export default class Explorer{
             pathArray.pop();
             pathArray.push(contents);
             
+            let newName:string = pathArray.join(path.sep);
+
+            if(filenode.file.stat.isDirectory()){
+                this.fileTree.forEach(f => {
+                    if(f != filenode && f.file.name.split(path.sep) == filenode.file.name.split(path.sep)){
+                        f.file.name = f.file.name.replace(filenode.file.name, newName);
+                    }
+                });
+            }
+
             let newFile:NotableFile = <NotableFile>{
-                name:pathArray.join(path.sep),
+                name:newName,
                 extension:filenode.file.extension,
                 stat:filenode.file.stat,
                 open:filenode.file.open,
@@ -128,10 +153,23 @@ export default class Explorer{
             };
 
             IO.rename(filenode.file.name, newFile.name);
+
             Events.trigger('rename',
                 filenode.file, newFile.name
             );
-            filenode.file = newFile;
+            filenode.file = newFile; 
+        });
+
+        Events.on('file.create',(filenode:FileNode, contents:string)=>{
+            let filename:string = path.join(this.currentPath, contents);
+            if(filenode.isFile){
+                filename += '.md';
+                IO.saveFile(filename, "");
+            }else{
+                IO.createFolder(filename);
+            }
+
+            let node:FileNode = this.insertFile(filename, false, true);
         });
     }
 
@@ -157,31 +195,8 @@ export default class Explorer{
                 this.openDirectory(dir);
 			} else if (prev === null) {
 				// f is a new file
-                let index:number = this.findFile(f.toString());
-				if(index == -1){
-                    let file:NotableFile = IO.fileFromPath(f.toString(),curr);
-                    let fileNode:FileNode = this.createFileNode(file);
-                    let inserted:boolean = false;
+                this.insertFile(f.toString(), curr);
 
-                    if(path.dirname(file.name) == this.currentPath){
-                        for (var i = 0; i < this.fileNodes.length; i++) {
-                            if(this.sorter(fileNode, this.fileNodes[i]) == -1){
-                                this.root.insertBefore(fileNode.node, this.fileNodes[i].node);
-                                inserted = true;
-                                this.fileNodes.splice(i, 0, fileNode);
-                                break;
-                            }
-                        }
-                        if(!inserted){
-                            this.root.appendChild(fileNode.node);
-                        }
-                    }
-
-                    this.fileTree.push(fileNode);
-                }else{
-                    this.fileTree[index].file = 
-                        IO.fileFromPath(f.toString(), curr);
-                }
 			} else if (curr.nlink === 0) {
 				// f was removed
                 let index:number = this.findFile(f.toString());
@@ -205,6 +220,47 @@ export default class Explorer{
                 }
 			}
         });
+    }
+
+    private insertFile(filepath:string, stats?:any, openAfter?:boolean):FileNode{
+        let index:number = this.findFile(filepath);
+        if(index == -1){
+            let file:NotableFile = stats == undefined ? 
+                IO.fileFromPath(filepath) : 
+                IO.fileFromPath(filepath, stats);
+            let fileNode:FileNode = this.createFileNode(file);
+            let inserted:boolean = false;
+
+            if(path.dirname(file.name) == this.currentPath){
+                for (var i = 0; i < this.fileNodes.length; i++) {
+                    if(this.sorter(fileNode, this.fileNodes[i]) == -1){
+                        this.root.insertBefore(fileNode.node, this.fileNodes[i].node);
+                        inserted = true;
+                        this.fileNodes.splice(i, 0, fileNode);
+                        break;
+                    }
+                }
+                if(!inserted){
+                    this.root.appendChild(fileNode.node);
+                }
+            }
+
+            this.fileTree.push(fileNode);
+            if(openAfter){
+                this.clickFile(fileNode);
+            }
+
+            return fileNode;
+        }else{
+            this.fileTree[index].file = stats == undefined ? 
+                IO.fileFromPath(filepath) : 
+                IO.fileFromPath(filepath, stats);
+        }
+
+        if(openAfter){
+            this.clickFile(this.fileTree[index]);
+        }
+        return this.fileTree[index];
     }
 
     /**
@@ -429,6 +485,7 @@ export default class Explorer{
             <h3>This folder seems empty...</h3>
             <h4>Would you like to create a notebook?<br />Just right-click here!</h4>
         </div>`;
+        this.emptyContextMenu(empty, false);
         return empty;
     }
 }

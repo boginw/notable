@@ -298,6 +298,33 @@ tbody{
         left: 100%;
     }
 }
+
+.folders_and_files ul li .folderName .title{
+    background: rgba(52, 73, 94, 0.8);
+    color: #fff;
+    display: flex;
+    flex-wrap: wrap;
+
+    &:hover{
+        opacity: 0.7;
+    }
+
+    & .titleText{
+        width: calc(~"100% - 24px");
+    }
+
+    & .material-icons {
+        line-height: 0.7;
+    }
+
+    & .fileDetails{
+        width: 100%;
+        & .filePrev{
+            border-top: initial;
+        }
+    }
+}
+
 .folders_and_files ul li{
     display:block;
     cursor:pointer;
@@ -312,6 +339,10 @@ tbody{
  
 .folders_and_files .title{
     padding: 8px;
+    &.newfile{
+        background-color: rgba(48, 147, 236, 0.71);
+        color:white;
+    }
 }
 .folders_and_files .title:hover{
     background-color: rgba(48, 147, 236, 0.71);
@@ -324,8 +355,8 @@ tbody{
 .folders_and_files .fileName{
     color:#7f8c8d;
 }
-.folders_and_files .foldeName{
-    color: #2c3e50;
+.folders_and_files .folderName{
+ //   color: #2c3e50;
 }
 .folders_and_files ul li:hover > .fileName{
     color:#000;

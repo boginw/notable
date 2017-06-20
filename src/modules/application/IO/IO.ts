@@ -184,13 +184,14 @@ export default class IO{
                 (filePath.substring(0, 4) == ".git") ? '.git' :'.default',
             stat: stats ? stats : this.fileStats(filePath),
             open: false,
-            childrens: [],
+            childrens: 0,
             preview: "",
         }
 
         // Directories don't have previews
         if(file.stat.isDirectory()){
-            return file;
+			file.childrens = IO.filesInDirectory(filePath).length;
+		    return file;
         }
 
         // Get file preview if the file isn't png

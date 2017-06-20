@@ -35,7 +35,7 @@ export interface NotableFile{
     extension:string;
     stat:any,
     open:boolean;
-    childrens:NotableFile[];
+    childrens:number;
 	preview:string;
 }
 

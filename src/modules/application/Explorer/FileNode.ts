@@ -16,9 +16,14 @@ export default class FileNode{
     private _open:boolean;
     private base:HTMLLIElement;
     private renameInput:HTMLInputElement;
+    private _isFile:boolean;
 
     get file():NotableFile {
         return this._file;
+    }
+
+    get isFile():boolean{
+        return this._isFile;
     }
 
     // Everytime file us updated, the file should rerender
@@ -40,29 +45,49 @@ export default class FileNode{
 
     /**
      * Default constructor
-     * @param file Notable file
+     * @param {NotableFile|boolean} file Notable file or
+     *  used for creating new files, this boolean determines
+     *  if the new item will be a file or a folder
      */
-    constructor(file:NotableFile){
+    constructor(file:NotableFile|boolean){
         // For "time ago" strings
         this.ta = new TimeAgo();
 
         // Base should only be created once
         this.base = document.createElement('li');
 
-        // Store file, and render
-        this.file = file;
+        if(typeof(file) != 'boolean'){
+            // Store file, and render
+            this.file = file;
+        }else{
+            this._isFile = file;
+            // This will be a new file or folder
+            this.node = this.renderItem(file);
+            this.renameFile();
+            this.setEvents();
+        }
     }
 
     public renameFile():void{
         let inputField:HTMLInputElement = <HTMLInputElement> 
             this.base.querySelector('.inputTitleText');
         inputField.style.display = 'inline-block';
+        inputField.placeholder = 'Enter file name';
+        inputField.tabIndex = -1;
         inputField.value = this.fileDisplayName(this.file);
-        inputField.focus();
+        // Needs to be async for some reason
+        setTimeout(() => {
+            inputField.focus();
+        }, 1);
+        
         inputField.setSelectionRange(0, inputField.value.length);
     }
 
     public renameFileBlur():void{
+        if(!this.file){
+            this.fileRemoved();
+            return;
+        }
         let inputField:HTMLInputElement = <HTMLInputElement> 
             this.base.querySelector('.inputTitleText');
         inputField.style.display = 'none';
@@ -75,7 +100,9 @@ export default class FileNode{
     private setEvents():void{
         // Click events
         this.base.onclick = () => {
-            Events.trigger('file.click', this);
+            if(inputField.style.display != 'inline-block'){
+                Events.trigger('file.click', this);
+            }
         };
         this.base.ondblclick = () => {
             this.renameFile();
@@ -107,7 +134,17 @@ export default class FileNode{
 
         inputField.addEventListener('keypress',(ev:KeyboardEvent)=>{
             if(ev.keyCode == 13){
-                Events.trigger('file.rename', this, inputField.value + this.file.extension);
+                let newName:string = inputField.value;
+
+                if(this._file == undefined){
+                    Events.trigger('file.create', this, newName);
+                }else{
+                    if(!this._file.stat.isDirectory()){
+                        newName += this.file.extension;
+                    }
+
+                    Events.trigger('file.rename', this, newName);
+                }
                 this.renameFileBlur();
             }
         },true);
@@ -197,7 +234,13 @@ export default class FileNode{
      * Destroy node
      */
     public fileRemoved():void{
-        this.node.remove();
+        if(this.node){
+            try{
+                this.node.remove();
+            }catch(err){
+                console.log(err);
+            }
+        }
     }
     
     /**
@@ -220,11 +263,14 @@ export default class FileNode{
      * @param  {file} 	 file 	file from getDirectoriesInPath
      * @return {string}	  	Filename without extension
      */
-    private fileDisplayName(file:NotableFile):string{
+    private fileDisplayName(file?:NotableFile):string{
+        if(file){
         let fname:string = file.stat.isDirectory() ? file.name : 
             file.name.substr(0,file.name.length-file.extension.length);
 
-        return path.basename(fname);
+            return path.basename(fname);
+        }
+        return '';
     }
 
     /**
@@ -232,42 +278,45 @@ export default class FileNode{
      * @param {NotableFile} file Item to render
      * @return {HTMLLIElement} Rendered item
      */
-    private renderItem(file:NotableFile):HTMLLIElement{
-        // Files should be draggable
-        this.base.draggable = !file.stat.isDirectory();
-
+    // TODO: rewrite
+    private renderItem(file:NotableFile|boolean):HTMLLIElement{
+        let isFile = typeof file != 'boolean';
         // Clean base html so we don't add dublicates
         this.base.innerHTML = '';
 
         // Create contents container
         let contents:HTMLSpanElement = document.createElement('span');
-        contents.className = file.stat.isDirectory() ? "folderName" : "fileName";
 
         // Create file title and preview        
         let title:HTMLDivElement = document.createElement('div');
-        title.className = "title";
-        title.innerHTML = `<span class="titleText">${this.fileDisplayName(file)}</span>`;
+        title.className = "title" + (isFile ? '' : ' newfile');
+        title.innerHTML = `<span class="titleText">${typeof file != 'boolean' ? this.fileDisplayName(file): 'n'}</span>`;
 
         this.renameInput = document.createElement('input');
         this.renameInput.className = "inputTitleText";
 
         title.appendChild(this.renameInput);
         
-        let timeAgo:string = this.ta.ago(new Date(file.stat.mtime));
+        let timeAgo:string = typeof file != 'boolean' ? this.ta.ago(new Date(file.stat.mtime)) : '';
         // Only files have preview and lastmod
-        if(!file.stat.isDirectory()){
+        if((!isFile && file) || (typeof file != 'boolean' && !file.stat.isDirectory())){
+            // Files should be draggable
+            this.base.draggable = true;
+
+            contents.className = "fileName";            
             // Time ago since file was created
             title.innerHTML += `
                 <div class="fileDetails">
                     <div class="lastMod">${timeAgo}</div>
-                    <div class="filePrev">${file.preview}</div>
+                    <div class="filePrev">${typeof file != 'boolean' ? file.preview : ''}</div>
                 </div>`;
         }else{
-            /*title.innerHTML += `
+            contents.className = "folderName";
+            title.innerHTML += `<i class="material-icons">keyboard_arrow_right</i>
                 <div class="fileDetails">
-                    <div class="lastMod">${timeAgo}</div>
-                    <div class="filePrev">12 notes in notebook</div>
-                </div>`;*/
+                    <!--<div class="lastMod">${timeAgo}</div>-->
+                    ${isFile ? `<div class="filePrev">${this.file.childrens} note${this.file.childrens == 1 ? '' : 's'} in this notebook</div>` : '' }
+                </div>`;
         }
         
         contents.appendChild(title);
