@@ -1,0 +1,29 @@
+{
+    "rules": {
+		"class-name": true,
+		"indent": [true, "tabs"],
+		"comment-format": [true, "check-space"],
+		"max-line-length": [true, 140],
+		"member-access": true,
+		"no-unused-expression": true,
+		"no-var-keyword": true,
+		"trailing-comma": [false, {
+			"singleline": "never",
+			"multiline": "never"
+		}],
+		"member-ordering": [true,
+			"public-before-private",
+			"static-before-instance",
+			"variables-before-functions"
+		],
+		"no-eval": true,
+		"semicolon": true,
+    	"no-console": [true,
+			"debug",
+			"info",
+			"time",
+			"timeEnd",
+			"trace"
+		]
+    }
+}

@@ -11,6 +11,7 @@ var bundle = require('./bundle');
 var utils = require('./utils');
 var runsequence = require('run-sequence');
 var path = require('path');
+var tslint = require("gulp-tslint");
 // var ts = require('typescript');
 
 var projectDir = jetpack;
@@ -18,58 +19,73 @@ var srcDir = jetpack.cwd('./src');
 var distDir = jetpack.cwd('./dist');
 var destDir = jetpack.cwd('./app');
 
+
+gulp.task('lint', () => {
+	console.log(path.join(__dirname,"../.tslintrc.json"));
+	// ESLint ignores files with "node_modules" paths.
+	// So, it's best to have gulp ignore the directory as well.
+	// Also, Be sure to return the stream from the task;
+	// Otherwise, the task may end before the stream has finished.
+	return gulp.src(['src/**/*.ts', '!node_modules/**'])
+		.pipe(tslint({
+			configuration: path.join(__dirname,"../.tslintrc.json"),
+            formatter: "verbose"
+        }))
+        .pipe(tslint.report())
+});
+
 gulp.task('bundle', function () {
-    let modules = jetpack.list(srcDir.path(path.join('modules','editor')));
-    let bundles = [
-        bundle(distDir.path('background.js'), destDir.path('background.js')),
-        bundle(distDir.path('app.js'), destDir.path('app.js')),
-    ];
+	let modules = jetpack.list(srcDir.path(path.join('modules', 'editor')));
+	let bundles = [
+		bundle(distDir.path('background.js'), destDir.path('background.js')),
+		bundle(distDir.path('app.js'), destDir.path('app.js')),
+	];
 
-    for(var i = 0; i < modules.length; i++){
-        var modPath = path.join("modules", "editor",modules[i],modules[i]+'.js');
-        bundles.push(bundle(distDir.path(modPath), destDir.path(modPath)));
-    }
+	for (var i = 0; i < modules.length; i++) {
+		var modPath = path.join("modules", "editor", modules[i], modules[i] + '.js');
+		bundles.push(bundle(distDir.path(modPath), destDir.path(modPath)));
+	}
 
-    return Promise.all(bundles);
+	return Promise.all(bundles);
 });
 
 var tsProject = ts.createProject('tsconfig.json');
 
-gulp.task('ts', function() {
-    var tsResult = gulp.src('src/**/*.ts')
-        .pipe(tsProject());
- 
-    return tsResult.js.pipe(gulp.dest('dist'));
+gulp.task('ts', function () {
+	var tsResult = gulp.src('src/**/*.ts')
+		.pipe(tsProject());
+
+	return tsResult.js.pipe(gulp.dest('dist'));
 });
 
 gulp.task('less', function () {
-    return gulp.src(srcDir.path('stylesheets/main.less'))
-        .pipe(plumber())
-        .pipe(less())
-        .pipe(gulp.dest(destDir.path('stylesheets')));
+	return gulp.src(srcDir.path('stylesheets/main.less'))
+		.pipe(plumber())
+		.pipe(less())
+		.pipe(gulp.dest(destDir.path('stylesheets')));
 });
 
 gulp.task('environment', function () {
-    var configFile = 'config/env_' + utils.getEnvName() + '.json';
-    projectDir.copy(configFile, destDir.path('env.json'), { overwrite: true });
+	var configFile = 'config/env_' + utils.getEnvName() + '.json';
+	projectDir.copy(configFile, destDir.path('env.json'), { overwrite: true });
 });
 
 gulp.task('watch', function () {
-    var beepOnError = function (done) {
-        return function (err) {
-            if (err) {
-                utils.beepSound();
-            }
-            done(err);
-        };
-    };
+	var beepOnError = function (done) {
+		return function (err) {
+			if (err) {
+				utils.beepSound();
+			}
+			done(err);
+		};
+	};
 
-    watch('src/**/*.ts', batch(function (events, done) {
-        runsequence('ts', 'bundle', done);
-    }));
-    watch('src/**/*.less', batch(function (events, done) {
-        gulp.start('less', beepOnError(done));
-    }));
+	watch('src/**/*.ts', batch(function (events, done) {
+		runsequence('ts', 'bundle', done);
+	}));
+	watch('src/**/*.less', batch(function (events, done) {
+		gulp.start('less', beepOnError(done));
+	}));
 });
 
-gulp.task('build', runsequence('ts', 'bundle', 'less', 'environment'));
+gulp.task('build', runsequence('lint', 'ts', 'bundle', 'less', 'environment'));

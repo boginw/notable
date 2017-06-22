@@ -14,45 +14,36 @@ import createWindow from './helpers/window';
 // in config/env_xxx.json file.
 import env from './env';
 
-var mainWindow;
-
-var setApplicationMenu = function () {
-    var menus: any[] = [editMenuTemplate];
-    if (env.name !== 'production') {
-        menus.push(devMenuTemplate);
-    }
-    Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
-};
+let mainWindow;
 
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
 if (env.name !== 'production' && app) {
-    var userDataPath = app.getPath('userData');
-    app.setPath('userData', userDataPath + ' (' + env.name + ')');
+	let userDataPath = app.getPath('userData');
+	app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
 app.on('ready', function () {
-    setApplicationMenu();
 
-    var mainWindow = createWindow('main', {
-        width: 1000,
-        height: 600,
-        "node-integration": false,
-        frame: false,
-    });
+	let mainWindow = createWindow('main', {
+		width: 1000,
+		height: 600,
+		"node-integration": false,
+		frame: false,
+	});
 
-    mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, 'app.html'),
-        protocol: 'file:',
-        slashes: true,
-    }));
+	mainWindow.loadURL(url.format({
+		pathname: path.join(__dirname, 'app.html'),
+		protocol: 'file:',
+		slashes: true,
+	}));
 
-    if (env.name === 'development') {
-        mainWindow.openDevTools();
-    }
+	if (env.name === 'development') {
+		mainWindow.openDevTools();
+	}
 });
 
 app.on('window-all-closed', function () {
-    app.quit();
+	app.quit();
 });

@@ -31,6 +31,7 @@
     "@types/codemirror": "0.0.40",
     "codemirror-widgets": "^1.4.2",
     "fs-jetpack": "^0.10.2",
+    "gulp-eslint": "^4.0.0",
     "install": "^0.10.1",
     "katex": "^0.7.1",
     "material-icons": "^0.1.0",
@@ -56,6 +57,7 @@
     "gulp-batch": "^1.0.5",
     "gulp-less": "^3.0.3",
     "gulp-plumber": "^1.1.0",
+    "gulp-tslint": "^8.1.1",
     "gulp-typescript": "^3.1.5",
     "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
@@ -65,6 +67,7 @@
     "rollup": "^0.36.3",
     "rollup-plugin-istanbul": "^1.1.0",
     "source-map-support": "^0.4.2",
-    "spectron": "^3.3.0"
+    "spectron": "^3.3.0",
+    "tslint": "^5.4.3"
   }
 }

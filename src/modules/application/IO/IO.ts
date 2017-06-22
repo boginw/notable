@@ -6,19 +6,19 @@ import {
 	NotableFile
 } from '../../../interfaces';
 
-export default class IO{
+export default class IO {
 	/**
 	 * Opens file and gets its contents
 	 * @param {string}  fileName File to open
 	 * @return {strnig} File contents
 	 */
-	public static openFile(fileName:string):string{
+	public static openFile(fileName: string): string {
 		// Try to open the file, if fails, just return empty string
 		try {
 			// Do we have access?
-			let access:any = fs.accessSync(fileName,fs.F_OK);
+			let access: any = fs.accessSync(fileName, fs.F_OK);
 			// Open the file
-			let file:any = fs.readFileSync(fileName);
+			let file: any = fs.readFileSync(fileName);
 			return file.toString();
 		} catch (e) {
 			return "";
@@ -30,11 +30,11 @@ export default class IO{
 	 * @param {string} path Path to file
 	 * @param {string} contents Contents to be written to the file 
 	 */
-	public static saveFile(path:string, contents:string):void{
-		fs.writeFile(path, contents, function(err:string) {
-		    if(err) {
-		        throw err;
-		    }
+	public static saveFile(path: string, contents: string): void {
+		fs.writeFile(path, contents, function (err: string) {
+			if (err) {
+				throw err;
+			}
 		});
 	}
 
@@ -42,7 +42,7 @@ export default class IO{
 	 * Deletes a file
 	 * @param {string} path File to delete
 	 */
-	public static deleteFile(path:string):void{
+	public static deleteFile(path: string): void {
 		fs.unlinkSync(path);
 	}
 
@@ -50,11 +50,11 @@ export default class IO{
 	 * Recursively deletes a folder (DO NOT USE OUTSIDE NOTE ENVIROMENT!)
 	 * @param {string} dirPath Folder to delete
 	 */
-	public static deleteFolder(dirPath:string):void{
-		if( fs.existsSync(dirPath) ) {
-			fs.readdirSync(dirPath).forEach((file,index)=>{
-				var curPath = path.join(dirPath, file);
-				if(fs.lstatSync(curPath).isDirectory()) { // recurse
+	public static deleteFolder(dirPath: string): void {
+		if (fs.existsSync(dirPath)) {
+			fs.readdirSync(dirPath).forEach((file, index) => {
+				let curPath = path.join(dirPath, file);
+				if (fs.lstatSync(curPath).isDirectory()) { // recurse
 					this.deleteFolder(curPath);
 				} else { // delete file
 					fs.unlinkSync(curPath);
@@ -71,37 +71,37 @@ export default class IO{
      * @return {boolean} Whether or not it was possible to
      *                   ensure existance.
      */
-    public static ensureFolderExists(dir):boolean{
-        // If the folder exists or folder is undefined
-        // then we say that we have ensured that the
-        // folder exists
-        if(this.exists(dir) || !dir){
-            return true;
-        }
+	public static ensureFolderExists(dir): boolean {
+		// If the folder exists or folder is undefined
+		// then we say that we have ensured that the
+		// folder exists
+		if (this.exists(dir) || !dir) {
+			return true;
+		}
 
-        // Split the path by the OS seperator
-        let splitDir:string[] = dir.split(path.sep);
-        // Pop to get the last element of splitDir and remove it
-        let folderToCreate:string = splitDir.pop() || "";
-        // Create the path to the folder above this one
-        let newDir:string = splitDir.join(path.sep);
+		// Split the path by the OS seperator
+		let splitDir: string[] = dir.split(path.sep);
+		// Pop to get the last element of splitDir and remove it
+		let folderToCreate: string = splitDir.pop() || "";
+		// Create the path to the folder above this one
+		let newDir: string = splitDir.join(path.sep);
 
-        // Ensure that the folder above this exists
-        if(this.ensureFolderExists(newDir)){
-            // Create the folder
-            this.createFolder(path.join(newDir, folderToCreate));
-            return true;
-        }
-        // Folder could not be created
-        return false;
-    }
+		// Ensure that the folder above this exists
+		if (this.ensureFolderExists(newDir)) {
+			// Create the folder
+			this.createFolder(path.join(newDir, folderToCreate));
+			return true;
+		}
+		// Folder could not be created
+		return false;
+	}
 
 	/**
 	 * Renames (moves) a file or folder
 	 * @param {string} filePath Path to file or folder
 	 * @param {string} newName The new path to file or folder
 	 */
-	public static rename(filePath:string, newName:string){
+	public static rename(filePath: string, newName: string) {
 		fs.renameSync(filePath, newName);
 	}
 
@@ -109,7 +109,7 @@ export default class IO{
 	 * Creates a folder
 	 * @param {string} path Path to the folder to create
 	 */
-	public static createFolder(path:string):void{
+	public static createFolder(path: string): void {
 		fs.mkdirSync(path);
 	}
 
@@ -117,32 +117,32 @@ export default class IO{
 	 * Checks if a thing in the filesystem exists
 	 * @param {string} path Path to thing to check if exists
 	 */
-	public static exists(path:string):boolean{
+	public static exists(path: string): boolean {
 		return fs.existsSync(path);
 	}
-	
+
 	/**
 	 * [filePreview description]
 	 * @param  {string} pathToFile   self explainatory
 	 * @param  {int} 	bufferLength length of the buffer which stores the file
 	 * @return {string}              file preview
 	 */
-	public static filePreview(pathToFile:string):string;
-	public static filePreview(pathToFile:string, bufferLength?:number):string{
+	public static filePreview(pathToFile: string): string;
+	public static filePreview(pathToFile: string, bufferLength?: number): string {
 		// Overload methods are overrated
-		bufferLength = bufferLength || 100;
-		
+		bufferLength = bufferLength ||  100;
+
 		// Create buffer to store characters
-		let buffer:Buffer = new Buffer(new Array(bufferLength));
+		let buffer: Buffer = new Buffer(new Array(bufferLength));
 
 		// Open file
-		let fd:any = fs.openSync(pathToFile, 'r');
+		let fd: any = fs.openSync(pathToFile, 'r');
 
 		// Read our preview
 		fs.readSync(fd, buffer, 3, bufferLength - 5, 0);
 
 		// return preview without newlines
-		return String(buffer).replace(/\n/gm," ").replace(/\0/g,'');
+		return String(buffer).replace(/\n/gm, " ").replace(/\0/g, '');
 	}
 
 	/**
@@ -151,7 +151,7 @@ export default class IO{
 	 * @param callback A callback method which will be called
 	 * every time there's a change
 	 */
-	public static watchDirectory(dirPath:string, callback:(f:any, curr:any, prev:any) => any):void{
+	public static watchDirectory(dirPath: string, callback: (f: any, curr: any, prev: any) => any): void {
 		watch.watchTree(dirPath, callback);
 	}
 
@@ -159,7 +159,7 @@ export default class IO{
 	 * Leave this directory alone!
 	 * @param {string} dirPath Directory path
 	 */
-	public static unwatchDirectory(dirPath:string):void{
+	public static unwatchDirectory(dirPath: string): void {
 		watch.unwatchTree(dirPath);
 	}
 
@@ -168,7 +168,7 @@ export default class IO{
 	 * @param {string} filePath Path to file
 	 * @return {any} File stats
 	 */
-	public static fileStats(filePath:string):any{
+	public static fileStats(filePath: string): any {
 		return fs.statSync(filePath);
 	}
 
@@ -176,51 +176,51 @@ export default class IO{
      * Creates file from path
      * @param {string} filePath Path to the file to be created
      */
-    public static fileFromPath(filePath:string, stats?:any):NotableFile{
-        // Construct file
-        let file:NotableFile = <NotableFile>{
-            name: filePath,
-            extension: (path.extname(filePath)) ? path.extname(filePath) : 
-                (filePath.substring(0, 4) == ".git") ? '.git' :'.default',
-            stat: stats ? stats : this.fileStats(filePath),
-            open: false,
-            childrens: 0,
-            preview: "",
-        }
+	public static fileFromPath(filePath: string, stats?: any): NotableFile {
+		// Construct file
+		let file: NotableFile = <NotableFile>{
+			name: filePath,
+			extension: (path.extname(filePath)) ? path.extname(filePath) :
+				(filePath.substring(0, 4) == ".git") ? '.git' : '.default',
+			stat: stats ? stats : this.fileStats(filePath),
+			open: false,
+			childrens: 0,
+			preview: "",
+		};
 
-        // Directories don't have previews
-        if(file.stat.isDirectory()){
+		// Directories don't have previews
+		if (file.stat.isDirectory()) {
 			file.childrens = IO.filesInDirectory(filePath).length;
-		    return file;
-        }
+			return file;
+		}
 
-        // Get file preview if the file isn't png
-        file.preview = path.extname(filePath) == '.png' ? 
-            "" : this.filePreview(filePath);
+		// Get file preview if the file isn't png
+		file.preview = path.extname(filePath) == '.png' ?
+			"" : this.filePreview(filePath);
 
-        return file;
-    }
+		return file;
+	}
 
 	/**
 	 * Gets all files in a specific directory
 	 * @param dirPath 		Path to the directory
 	 * @param acceptedfiles Filter files
 	 */
-	public static filesInDirectory(dirPath:string):NotableFile[];
-	public static filesInDirectory(dirPath:string, acceptedfiles?:string[]):NotableFile[]{
-		let files:string[] = fs.readdirSync(dirPath);
-		let tree:NotableFile[] = [];
-		let folders:NotableFile[] = [];
+	public static filesInDirectory(dirPath: string): NotableFile[];
+	public static filesInDirectory(dirPath: string, acceptedfiles?: string[]): NotableFile[] {
+		let files: string[] = fs.readdirSync(dirPath);
+		let tree: NotableFile[] = [];
+		let folders: NotableFile[] = [];
 
-		for(var i:number = 0; i <= (files.length-1); i++){
-			let filePath:string = path.join(dirPath, files[i]);
-			let file:NotableFile = this.fileFromPath(filePath);
+		for (let i: number = 0; i <= (files.length - 1); i++) {
+			let filePath: string = path.join(dirPath, files[i]);
+			let file: NotableFile = this.fileFromPath(filePath);
 
-			if(file.stat.isDirectory()){
+			if (file.stat.isDirectory()) {
 				folders.push(file);
 
-			}else if((!acceptedfiles || acceptedfiles.length == 0) || 
-					acceptedfiles.indexOf(file.extension) != -1){
+			} else if ((!acceptedfiles || acceptedfiles.length == 0) ||
+				acceptedfiles.indexOf(file.extension) != -1) {
 				tree.push(file);
 			}
 		}

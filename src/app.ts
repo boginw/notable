@@ -2,8 +2,11 @@ import * as os from 'os'; // native node.js module
 const fs = require('fs');
 const path = require('path');
 const { remote } = require('electron'); // native electron module
-const { app, dialog, clipboard } = remote;
+const { app, dialog, clipboard, Menu } = remote;
 const jetpack = require('fs-jetpack'); // module loaded from npm
+
+import { devMenuTemplate } from './menu/dev_menu_template';
+import { editMenuTemplate } from './menu/edit_menu_template';
 import env from './env';
 
 // Electron does not have HiDPI for Linux yet, so here's a workaround
@@ -11,7 +14,6 @@ import ZoomFactor from './modules/application/ZoomFactor/ZoomFactor';
 import TitleBar from './modules/application/TitleBar/TitleBar';
 import Explorer from './modules/application/Explorer/Explorer';
 import Editor from './modules/application/Editor/Editor';
-import InputWatch from './helpers/inputwatch';
 import Events from './helpers/Events';
 
 import {
@@ -22,23 +24,23 @@ import {
 
 namespace Notable {
 
-	class Notable{
-		openedFile:NotableFile|null;
-		explorer:Explorer;
-		startingPath:string;
+	class Notable {
+		private openedFile: NotableFile | null;
+		private explorer: Explorer;
+		private startingPath: string;
 		private saveIntervals: any;
-		private editor:Editor;
+		private editor: Editor;
 		/**
 		 * Default constructor
 		 */
-		constructor(){
-			this.startingPath = path.join(app.getPath('documents'),'notes');
+		constructor() {
+			this.startingPath = path.join(app.getPath('documents'), 'notes');
 
 			// Zoom to defined scale (Linux specific)
 			new ZoomFactor().zoom();
-			
+
 			// Create our title bar
-			new TitleBar();
+			let titleBar:TitleBar = new TitleBar();
 
 			// Initialize the editor
 			this.editor = new Editor();
@@ -47,15 +49,15 @@ namespace Notable {
 			this.explorer = new Explorer(this.startingPath);
 
 			// When the user opens a file
-			Events.on('explorer.open',(file:NotableFile, contents:string) => {
+			Events.on('explorer.open', (file: NotableFile, contents: string) => {
 				this.editor.openFile(
-					file.name.replace(this.startingPath,''), contents);
+					file.name.replace(this.startingPath, ''), contents);
 				this.openedFile = file;
 			});
 
 			// If the file doesn't exist anymore
-			Events.on('explorer.deleted',(file:NotableFile) => {
-				if(this.openedFile != null && file.name == this.openedFile.name){
+			Events.on('explorer.deleted', (file: NotableFile) => {
+				if (this.openedFile != null && file.name == this.openedFile.name) {
 					this.editor.deletedFile();
 					this.openedFile = null;
 					alert("This file was deleted");
@@ -63,29 +65,29 @@ namespace Notable {
 			});
 
 			// The file was renamed
-			Events.on('explorer.rename',(file:NotableFile, newName:string) =>{
-				if(this.openedFile != null && file.name == this.openedFile.name){
+			Events.on('explorer.rename', (file: NotableFile, newName: string) => {
+				if (this.openedFile != null && file.name == this.openedFile.name) {
 					this.openedFile = file;
-					this.editor.openedFile = file.name.replace(this.startingPath,'');
+					this.editor.openedFile = file.name.replace(this.startingPath, '');
 				}
 			});
 
 			// The user is typing...
-			Events.on('editor.change',()=>{
+			Events.on('editor.change', () => {
 				clearTimeout(this.saveIntervals);
-                this.saveIntervals = setTimeout(() => {
-                    this.saveCurrentFile(true);
-                }, 1500);
+				this.saveIntervals = setTimeout(() => {
+					this.saveCurrentFile(true);
+				}, 1500);
 			});
 		}
 
-		private saveCurrentFile(ignoreDialog?:boolean){
+		private saveCurrentFile(ignoreDialog?: boolean) {
 			console.log(this.openedFile);
-			if(this.openedFile == null){
-				if(!ignoreDialog){
-					var filter = [{name:"Markdown", extensions: ["md"]}];
+			if (this.openedFile == null) {
+				if (!ignoreDialog) {
+					let filter = [{ name: "Markdown", extensions: ["md"] }];
 
-					dialog.showSaveDialog({title: "Save note", filters: filter, defaultPath:this.startingPath}, (filename)=>{
+					dialog.showSaveDialog({ title: "Save note", filters: filter, defaultPath: this.startingPath }, (filename) => {
 						this.explorer.save(filename, this.editor.value());
 						this.editor.saved = true;
 					});
@@ -94,12 +96,23 @@ namespace Notable {
 			}
 
 			this.explorer.save(this.openedFile.name, this.editor.value());
-			this.editor.saved = true;		
+			this.editor.saved = true;
 		}
 	}
 
 	document.addEventListener('DOMContentLoaded', () => {
 		// Start application
-		new Notable();
+		let notable:Notable = new Notable();
 	});
+
+
+	let setApplicationMenu = () => {
+		let menus: any[] = [editMenuTemplate];
+		if (env.name !== 'production') {
+			menus.push(devMenuTemplate);
+		}
+		Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
+	};
+	setApplicationMenu();
+
 }

@@ -1,16 +1,16 @@
 
-var widgets = require('codemirror-widgets');
-var katex = require('katex');
+let widgets = require('codemirror-widgets');
+let katex = require('katex');
 
 import {
 	EditorModule,
 	SimpleMDE
 } from '../../../interfaces';
 
-module.exports = function(document:Document, md:SimpleMDE):EditorModule{
-	var WidgetImages = widgets.createType({
+module.exports = function (document: Document, md: SimpleMDE): EditorModule {
+	let WidgetImages = widgets.createType({
 		mixins: [
-			widgets.mixins.re(/!\[([^\]]+)\]\(([^)]+)\)/g, function(match:string[]) {
+			widgets.mixins.re(/!\[([^\]]+)\]\(([^)]+)\)/g, function (match: string[]) {
 				return {
 					props: {
 						alt: match[1],
@@ -21,9 +21,9 @@ module.exports = function(document:Document, md:SimpleMDE):EditorModule{
 			widgets.mixins.editParagraph()
 		],
 
-		createElement: function(widget:any):HTMLElement {
+		createElement: function (widget: any): HTMLElement {
 			// Create the spam to replace the formula
-			var img = document.createElement('img');
+			let img = document.createElement('img');
 			img.src = widget.props.src;
 			img.alt = widget.props.alt;
 			return img;
@@ -31,18 +31,18 @@ module.exports = function(document:Document, md:SimpleMDE):EditorModule{
 	});
 
 	// Create a widgets manager connected to an editor
-	var manager = widgets.createManager(md.codemirror);
+	let manager = widgets.createManager(md.codemirror);
 
 	// Connect a type of widget to the manager
 	manager.enable(WidgetImages);
 
-	let preview = function(plaintext:string):string{	
+	let preview = function (plaintext: string): string {
 		return plaintext;
-	}
+	};
 
 	return <EditorModule>{
 		name: 'Images',
 		enabled: true,
-		preview:preview
+		preview: preview
 	};
 };
