@@ -30,10 +30,13 @@ export default class IO {
 	 * @param {string} path Path to file
 	 * @param {string} contents Contents to be written to the file 
 	 */
-	public static saveFile(path: string, contents: string): void {
+	public static saveFile(path: string, contents: string, callback?: (contents: string) => void): void {
 		fs.writeFile(path, contents, function (err: string) {
 			if (err) {
 				throw err;
+			}
+			if(callback != undefined){
+				callback(contents);
 			}
 		});
 	}
@@ -130,7 +133,7 @@ export default class IO {
 	public static filePreview(pathToFile: string): string;
 	public static filePreview(pathToFile: string, bufferLength?: number): string {
 		// Overload methods are overrated
-		bufferLength = bufferLength ||  100;
+		bufferLength = bufferLength || 100;
 
 		// Create buffer to store characters
 		let buffer: Buffer = new Buffer(new Array(bufferLength));

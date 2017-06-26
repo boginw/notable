@@ -1,12 +1,11 @@
 import { expect, assert } from 'chai';
 const path = require('path');
 
-// TODO: FIX THIS!!!
-import Events from '../../dist/helpers/Events';
+import Events from './Events';
 
 describe('Events', function () {
 	it('Should fire due to subscription', function(){
-		let fire = false;
+		let fire: boolean = false;
 		Events.on('test',()=>{
 			fire = true;
 		});
@@ -15,7 +14,7 @@ describe('Events', function () {
 	});
 
 	it('Should not fire due to unsubscription', function(){
-		let fire = false;
+		let fire: boolean = false;
 
 		let listener = ()=>{
 			fire = true;
@@ -25,5 +24,19 @@ describe('Events', function () {
 		Events.off('test',listener);
 		Events.trigger('test');
 		assert.equal(false,fire);
+	});
+
+	it('Should fire twice', function(){
+		let fire: number = 0;
+
+		let listener = 
+
+		Events.on('test',()=>{
+			fire++;
+		});
+		Events.trigger('test');
+		Events.trigger('test');
+
+		assert.equal(2,fire);
 	});
 });
