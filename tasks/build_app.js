@@ -21,7 +21,6 @@ var destDir = jetpack.cwd('./app');
 
 
 gulp.task('lint', () => {
-	console.log(path.join(__dirname,"../.tslintrc.json"));
 	// ESLint ignores files with "node_modules" paths.
 	// So, it's best to have gulp ignore the directory as well.
 	// Also, Be sure to return the stream from the task;

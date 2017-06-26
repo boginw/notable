@@ -30,4 +30,23 @@ export default class Events {
 			});
 		}
 	}
+
+	/**
+	 * Stops listening of a specific event
+	 * @param {string} event Event to stop listening to
+	 * @param {anonymous function} trigger The trigger to remove
+	 * @return Whether or not it was possible to stop listening
+	 */
+	public static off(event: string, trigger: (...args: any[]) => void): boolean {
+		// Ensure that the event exists
+		if (this.event[event] !== undefined) {
+			for (let i = 0; i < this.event[event].length; i++) {
+				if(this.event[event][i] == trigger){
+					this.event[event].splice(i,1);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

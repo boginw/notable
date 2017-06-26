@@ -1,20 +1,20 @@
 import electron from 'electron';
 import { Application } from 'spectron';
-
+const timeout = 5000;
 
 var beforeEach = function () {
-    this.timeout(5000);
+    this.timeout(timeout);
     this.app = new Application({
         path: electron,
         args: ['.'],
-        startTimeout: 5000,
-        waitTimeout: 5000,
+        startTimeout: timeout,
+        waitTimeout: timeout,
     });
     return this.app.start();
 };
 
 var afterEach = function () {
-    this.timeout(5000);
+    this.timeout(timeout);
     if (this.app && this.app.isRunning()) {
         return this.app.stop();
     }

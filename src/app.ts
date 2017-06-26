@@ -15,7 +15,6 @@ import TitleBar from './modules/application/TitleBar/TitleBar';
 import Explorer from './modules/application/Explorer/Explorer';
 import Editor from './modules/application/Editor/Editor';
 import Events from './helpers/Events';
-
 import {
 	EditorModule,
 	SimpleMDE,

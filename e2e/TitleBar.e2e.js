@@ -2,6 +2,13 @@ import { expect, assert } from 'chai';
 import testUtils from './utils';
 const path = require('path');
 
+import ZoomFactor from '../dist/modules/application/ZoomFactor/ZoomFactor';
+import TitleBar from '../dist/modules/application/TitleBar/TitleBar';
+import Explorer from '../dist/modules/application/Explorer/Explorer';
+import Editor from '../dist/modules/application/Editor/Editor';
+import Events from '../dist/helpers/Events';
+
+/*
 describe('toolbar', function () {
 
     beforeEach(testUtils.beforeEach);
@@ -46,3 +53,4 @@ describe('toolbar', function () {
 
     // Cannot write test for close, since that disconnects from chrome
 });
+*/
