@@ -130,7 +130,6 @@ export default class IO {
 	 * @param  {int} 	bufferLength length of the buffer which stores the file
 	 * @return {string}              file preview
 	 */
-	public static filePreview(pathToFile: string): string;
 	public static filePreview(pathToFile: string, bufferLength?: number): string {
 		// Overload methods are overrated
 		bufferLength = bufferLength || 100;
@@ -142,7 +141,7 @@ export default class IO {
 		let fd: any = fs.openSync(pathToFile, 'r');
 
 		// Read our preview
-		fs.readSync(fd, buffer, 3, bufferLength - 5, 0);
+		fs.readSync(fd, buffer, 0, bufferLength, 0);
 
 		// return preview without newlines
 		return String(buffer).replace(/\n/gm, " ").replace(/\0/g, '');
