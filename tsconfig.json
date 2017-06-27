@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "es2015",
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "stripInternal": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "lib": ["es2015", "dom"],
+    "strict": true,
+    "removeComments": true,
+    "noImplicitAny": false
+  },
+  "exclude": [ "node_modules" ],
+  "files": [
+    "./src/app.ts",
+    "./src/background.ts"
+  ],
+  "angularCompilerOptions": {
+    "skipTemplateCodegen": true
+  }
+}
