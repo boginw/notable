@@ -7,7 +7,7 @@ import {
 	NotableFile,
 } from '../../../interfaces';
 import TimeAgo from '../../../helpers/timeago';
-import Events from '../../../helpers/Events';
+import Events from '../../../modules/application/Events/Events';
 
 export default class FileNode {
 	public node: HTMLLIElement;

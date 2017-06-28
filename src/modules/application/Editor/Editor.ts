@@ -1,13 +1,15 @@
 const path = require('path');
 const SimpleMDE = require('simplemde');
 const fs = require('fs');
+const { remote } = require('electron');
+const { clipboard } = remote;
 
 import {
 	SimpleMDE,
 	EditorModule,
 } from '../../../interfaces';
 import Toolbar from './Toolbar';
-import Events from '../../../helpers/Events';
+import Events from '../../../modules/application/Events/Events';
 
 
 export default class Editor {
@@ -60,6 +62,8 @@ export default class Editor {
 
 		// Load modules
 		this.modules = this.loadModules(__dirname);
+
+		console.log(this.md);
 	}
 
 	public openFile(filename: string, contents: string) {
@@ -67,6 +71,7 @@ export default class Editor {
 		this.supressChange = true;
 		this.md.value(contents);
 		this.saved = true;
+		this.md.codemirror.clearHistory();
 	}
 
 	public deletedFile() {
@@ -95,11 +100,27 @@ export default class Editor {
 			}
 		});
 
-		/*let extraKeys:any = this.md.codemirror.options.extraKeys;
+		let extraKeys:any = this.md.codemirror.options.extraKeys;
 		extraKeys['Ctrl-V'] = () => {
-			console.log(clipboard.availableFormats());				
+			let availableFormats: string[] = clipboard.availableFormats();
+			let toBeAppended: string = "";
+
+			if(availableFormats.indexOf('text/html') != -1 && 
+					availableFormats.indexOf('image/png') != -1){
+				let regex: RegExp = new RegExp('<img[^>]+src="([^">]+)"');
+				let res;
+				if((res = regex.exec(clipboard.readHTML())) != null){
+					toBeAppended = `![Pasted image](${res[1]})`;
+				}
+			}else if(availableFormats.indexOf('text/plain') != -1){
+				toBeAppended = clipboard.readText();
+			}
+
+			let cursor = this.md.codemirror.getCursor();
+			this.md.codemirror.replaceRange(toBeAppended, cursor);				
 		};
-		this.md.codemirror.setOption('extraKeys',extraKeys);*/
+		this.md.codemirror.setOption('extraKeys',extraKeys);
+
 	}
 
 
@@ -116,7 +137,8 @@ export default class Editor {
 		// TODO: use IO instead of fs
 		// Get all folders in modules/editor
 		let folders: string[] = fs.readdirSync(editorModulesFolder)
-			.filter((file: any) => fs.statSync(path.join(editorModulesFolder, file)).isDirectory());
+			.filter((file: any) => fs.statSync(
+				path.join(editorModulesFolder, file)).isDirectory());
 
 		let modules: EditorModule[] = [];
 

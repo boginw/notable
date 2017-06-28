@@ -8,7 +8,7 @@ import {
 	NoteBook
 } from '../../../interfaces';
 import TimeAgo from '../../../helpers/timeago';
-import Events from '../../../helpers/Events';
+import Events from '../../../modules/application/Events/Events';
 import IO from '../IO/IO';
 import FileNode from './FileNode';
 
@@ -69,14 +69,12 @@ export default class Explorer {
 						label: 'New Note',
 						role: 'new',
 						click: () => {
-							this.newFile();
 							Events.trigger('file.newFile');
 						},
 					}, {
 						label: 'New Folder',
 						role: 'newFolder',
 						click: () => {
-							this.newFile(false);
 							Events.trigger('file.newFolder');
 						},
 					}, {
@@ -174,6 +172,14 @@ export default class Explorer {
 			}
 
 			let node: FileNode = this.insertFile(filename, false, true);
+		});
+
+		Events.on('file.newFolder', () => {
+			this.newFile(false);
+		});
+
+		Events.on('file.newFile', () => {
+			this.newFile();			
 		});
 	}
 

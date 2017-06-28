@@ -10,6 +10,10 @@ export interface CodeMirror {
 	options: {
 		extraKeys: any;
 	};
+	clearHistory: () => void;
+	getDoc: () => any;
+	getCursor: () => {line:number, ch:number, sticky:any};
+	replaceRange: (code, from, to?, origin?) => any;
 	setOption: (option: string, options: any) => any;
 }
 

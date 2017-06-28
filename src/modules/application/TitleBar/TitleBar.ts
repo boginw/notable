@@ -1,5 +1,7 @@
 const { remote } = require('electron'); // native electron module
 
+import Events from '../../../modules/application/Events/Events';
+
 import {
 	SimpleMDE,
 } from '../../../interfaces';
@@ -58,12 +60,11 @@ export default class TitleBar {
 		login.innerHTML = `<i class="icon material-icons">account_circle</i>
 						   <span> LOGIN</span>`;
 		login.onclick = function (): any {
-			alert("Coming soon");
+			Events.trigger('titlebar.login');		
 		};
 
 		loginWrapper.appendChild(login);
 		leftHeader.appendChild(loginWrapper);
-
 
 		base.appendChild(leftHeader);
 		base.appendChild(rightHeader);
@@ -76,7 +77,7 @@ export default class TitleBar {
 	private logo(): HTMLDivElement {
 		let logo: HTMLDivElement = document.createElement('div');
 		logo.className = 'logo';
-		logo.innerHTML = '<img src="images/logo.png" width="30" height="30">';
+		logo.innerHTML = '<img src="images/logo.png" width="25" height="26">';
 		logo.onclick = this.handleLogo;
 
 		return logo;
@@ -133,7 +134,7 @@ export default class TitleBar {
 	 * When the user clicks the logo
 	 */
 	private handleLogo(): any {
-		// TODO: ???
+		Events.trigger('titlebar.logo');
 	}
 
 	/**
@@ -145,6 +146,8 @@ export default class TitleBar {
 		} else {
 			remote.getCurrentWindow().close();
 		}
+
+		Events.trigger('titlebar.close');		
 	}
 
 	/**
@@ -152,6 +155,8 @@ export default class TitleBar {
 	 */
 	private handleMinimize(): any {
 		remote.getCurrentWindow().minimize();
+
+		Events.trigger('titlebar.minimize');		
 	}
 
 	/**
@@ -171,5 +176,7 @@ export default class TitleBar {
 				.setFullScreen(!remote.getCurrentWindow().isFullScreen());
 			this.isFullscreen = remote.getCurrentWindow().isFullScreen();
 		}
+
+		Events.trigger('titlebar.fullscreen');		
 	}
 }

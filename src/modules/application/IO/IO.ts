@@ -74,7 +74,9 @@ export default class IO {
      * @return {boolean} Whether or not it was possible to
      *                   ensure existance.
      */
-	public static ensureFolderExists(dir): boolean {
+	public static ensureFolderExists(dir:string): boolean {
+		dir = path.resolve(dir);
+
 		// If the folder exists or folder is undefined
 		// then we say that we have ensured that the
 		// folder exists

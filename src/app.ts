@@ -14,7 +14,8 @@ import ZoomFactor from './modules/application/ZoomFactor/ZoomFactor';
 import TitleBar from './modules/application/TitleBar/TitleBar';
 import Explorer from './modules/application/Explorer/Explorer';
 import Editor from './modules/application/Editor/Editor';
-import Events from './helpers/Events';
+import Events from './modules/application/Events/Events';
+
 import {
 	EditorModule,
 	SimpleMDE,
@@ -78,10 +79,13 @@ namespace Notable {
 					this.saveCurrentFile(true);
 				}, 1500);
 			});
+
+			Events.on('titlebar.login', () => {
+				alert("Coming soon");
+			});
 		}
 
 		private saveCurrentFile(ignoreDialog?: boolean) {
-			console.log(this.openedFile);
 			if (this.openedFile == null) {
 				if (!ignoreDialog) {
 					let filter = [{ name: "Markdown", extensions: ["md"] }];

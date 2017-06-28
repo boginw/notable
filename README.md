@@ -18,12 +18,16 @@ You can [download the latest release](https://github.com/boginw/notable/releases
 You'll need [Node.js](https://nodejs.org) installed on your computer in order to build this app.
 
 ```bash
-$ git clone https://github.com/boginw/notable
-$ cd notable
-$ npm install
-$ npm start
+> git clone https://github.com/boginw/notable
+> cd notable
+> npm install
+> npm start
 ```
+
+## License
+
+The project is licensed under [MIT](https://github.com/boginw/notable/blob/master/LICENSE), however, the Notable logo is licensed under [deCreative Commons Attribution NonCommercial (CC-BY-NC)](https://creativecommons.org/licenses/by-nc/3.0/legalcode)
 
 ---
 
-This is still an unfinished product, so you're welcome to help :)
+This is still an unfinished product, so you're welcome to help
