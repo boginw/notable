@@ -13,6 +13,8 @@ var runsequence = require('run-sequence');
 var path = require('path');
 var tslint = require("gulp-tslint");
 // var ts = require('typescript');
+var pngToIco = require('png-to-ico');
+var fs = require('fs');
 
 var projectDir = jetpack;
 var srcDir = jetpack.cwd('./src');
@@ -87,4 +89,21 @@ gulp.task('watch', function () {
 	}));
 });
 
-gulp.task('build', runsequence('lint', 'ts', 'bundle', 'less', 'environment'));
+gulp.task('logo', function(){
+	let source = jetpack.cwd('./build/icons');
+	let build = jetpack.cwd('./build/').path();
+	let dist = jetpack.cwd('./app/images/').path();
+
+	let firstIcon = path.join(source.path(),source.list()[0]);
+	
+	pngToIco(firstIcon)
+		.then(buf => {
+			fs.writeFileSync(path.join(build, 'icon.ico'), buf);
+			fs.writeFileSync(path.join(dist, 'logo.ico'), buf);
+		})
+		.catch(console.error);
+
+	fs.createReadStream(firstIcon).pipe(fs.createWriteStream(path.join(dist, 'logo.png')));
+});
+
+gulp.task('build', runsequence('lint', 'ts', 'bundle', 'less', 'environment','logo'));

@@ -66,6 +66,7 @@
     "istanbul": "^0.4.3",
     "minimist": "^1.2.0",
     "mocha": "^3.4.2",
+    "png-to-ico": "^1.0.2",
     "rollup": "^0.36.3",
     "rollup-plugin-istanbul": "^1.1.0",
     "source-map-support": "^0.4.2",
