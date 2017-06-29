@@ -26,7 +26,7 @@ You'll need [Node.js](https://nodejs.org) installed on your computer in order to
 
 ## License
 
-The project is licensed under [MIT](https://github.com/boginw/notable/blob/master/LICENSE), however, the Notable logo is licensed under [deCreative Commons Attribution NonCommercial (CC-BY-NC)](https://creativecommons.org/licenses/by-nc/3.0/legalcode)
+The project is licensed under [MIT](https://github.com/boginw/notable/blob/master/LICENSE), however, the Notable logo is licensed under [Creative Commons Attribution NonCommercial (CC-BY-NC)](https://creativecommons.org/licenses/by-nc/3.0/legalcode)
 
 ---
 

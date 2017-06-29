@@ -43,7 +43,7 @@ namespace Notable {
 			let titleBar:TitleBar = new TitleBar();
 
 			// Initialize the editor
-			this.editor = new Editor();
+			this.editor = new Editor(this.startingPath);
 
 			// Initialize project explorer
 			this.explorer = new Explorer(this.startingPath);

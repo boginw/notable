@@ -18,6 +18,10 @@ export default class Editor {
 	private supressChange: boolean = false;
 	private openedFileNode: HTMLSpanElement;
 	private modules: EditorModule[];
+	private base: HTMLDivElement;
+	private startingPath: string;
+	private imageHolder: HTMLDivElement;
+	private editorHolder: HTMLDivElement;
 
 	public set openedFile(filename: string) {
 		if (this.openedFileNode != undefined) {
@@ -35,7 +39,11 @@ export default class Editor {
 		}
 	}
 
-	constructor() {
+	constructor(startingPath: string) {
+		this.startingPath = startingPath;
+
+		this.base = <HTMLDivElement>
+			document.querySelector('div.details-panel');
 
 		this.openedFileNode = <HTMLSpanElement>
 			document.querySelector('div.header-section > .text span:nth-child(1)');
@@ -43,9 +51,14 @@ export default class Editor {
 		this.savedUnsaved = <HTMLSpanElement>
 			document.querySelector('div.header-section > .text span:nth-child(2)');
 
+		this.imageHolder = <HTMLDivElement> 
+			this.base.querySelector('.image_holder');
+		this.editorHolder = <HTMLDivElement>
+			this.base.querySelector('.editor_holder');
+
 		// Create SimpleMDE instance
 		this.md = new SimpleMDE({
-			element: document.getElementById("editor"),
+			element: this.base.querySelector("#editor"),
 			spellChecker: false,
 			shortcuts: {
 				drawTable: "Cmd-Alt-T"
@@ -62,14 +75,26 @@ export default class Editor {
 
 		// Load modules
 		this.modules = this.loadModules(__dirname);
-
-		console.log(this.md);
 	}
 
 	public openFile(filename: string, contents: string) {
 		this.openedFile = filename;
-		this.supressChange = true;
-		this.md.value(contents);
+		if(path.extname(filename) == '.png'){
+			this.imageHolder.style.display = 'flex';
+			this.editorHolder.style.display = 'none';
+
+			let openedImageElement: HTMLImageElement = <HTMLImageElement> 
+				this.imageHolder.querySelector('#previewImage');
+			
+			if(openedImageElement != null){
+				openedImageElement.src = path.join(this.startingPath, filename);
+			}
+		}else{
+			this.editorHolder.style.display = 'initial';	
+			this.imageHolder.style.display = 'none';					
+			this.supressChange = true;
+			this.md.value(contents);
+		}
 		this.saved = true;
 		this.md.codemirror.clearHistory();
 	}
