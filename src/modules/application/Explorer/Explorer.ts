@@ -90,7 +90,9 @@ export default class Explorer {
 
 	private newFile(isFile: boolean = true): void {
 		let newFile: FileNode = new FileNode(isFile);
-
+		if(this.fileNodes.length == 0){
+			this.root.innerHTML = '';
+		}
 		this.root.appendChild(newFile.node);
 	}
 
@@ -166,12 +168,13 @@ export default class Explorer {
 			let filename: string = path.join(this.currentPath, contents);
 			if (filenode.isFile) {
 				filename += '.md';
-				IO.saveFile(filename, "");
+				IO.saveFile(filename, "", ()=>{
+					this.insertFile(filename, false, true);
+				});
 			} else {
 				IO.createFolder(filename);
+				this.insertFile(filename, false, true);
 			}
-
-			let node: FileNode = this.insertFile(filename, false, true);
 		});
 
 		Events.on('file.newFolder', () => {

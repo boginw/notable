@@ -54,15 +54,24 @@ export default class IO {
 	 * @param {string} dirPath Folder to delete
 	 */
 	public static deleteFolder(dirPath: string): void {
-		if (fs.existsSync(dirPath)) {
-			fs.readdirSync(dirPath).forEach((file, index) => {
-				let curPath = path.join(dirPath, file);
+		if (this.exists(dirPath)) {
+			let files: string[] = fs.readdirSync(dirPath);
+			
+			// Iterate over each file or folder in this folder
+			for (let i = 0; i < files.length; i++) {
+				// Get the path of the current file or folder
+				let curPath = path.join(dirPath, files[i]);
+
+				// Check if it is a folder
 				if (fs.lstatSync(curPath).isDirectory()) { // recurse
+					// Delete folder
 					this.deleteFolder(curPath);
-				} else { // delete file
-					fs.unlinkSync(curPath);
+				} else { // Delete file
+					this.deleteFile(curPath);
 				}
-			});
+			}
+
+			// Now it's safe to delete folder without ENOTEMPTY
 			fs.rmdirSync(dirPath);
 		}
 	}
@@ -144,6 +153,9 @@ export default class IO {
 
 		// Read our preview
 		fs.readSync(fd, buffer, 0, bufferLength, 0);
+
+		// Close file (VERY IMPORTANT!)
+		fs.closeSync(fd);
 
 		// return preview without newlines
 		return String(buffer).replace(/\n/gm, " ").replace(/\0/g, '');
