@@ -1,6 +1,7 @@
 const { remote } = require('electron'); // native electron module
 
 import Events from '../../../modules/application/Events/Events';
+import env from '../../../env';
 
 import {
 	SimpleMDE,
@@ -10,13 +11,13 @@ export default class TitleBar {
 	private isWindows: boolean;
 	private isLinux: boolean;
 	private isFullscreen: boolean;
+	private base: HTMLElement;
 
 	/**
 	 * Default constructor
-	 * @param {Document} document document 
-	 * @param {SimpleMDE} md      SimpleMDE instance
 	 */
-	constructor() {
+	constructor(base: HTMLElement) {
+		this.base = base;
 		this.isWindows = process.platform == "win32";
 		this.isLinux = process.platform == "linux";
 		this.isFullscreen = remote.getCurrentWindow().isMaximized() ||
@@ -32,9 +33,6 @@ export default class TitleBar {
 	private renderHeader(): void {
 		let logo: HTMLDivElement = this.logo();
 		let buttons: HTMLDivElement = this.titleBarButtons();
-
-		// Get the base element
-		let base: HTMLDivElement = <HTMLDivElement>document.querySelector('.header.bordered');
 
 		// Create the sides
 		let leftHeader: HTMLDivElement = document.createElement('div');
@@ -66,8 +64,8 @@ export default class TitleBar {
 		loginWrapper.appendChild(login);
 		leftHeader.appendChild(loginWrapper);
 
-		base.appendChild(leftHeader);
-		base.appendChild(rightHeader);
+		this.base.appendChild(leftHeader);
+		this.base.appendChild(rightHeader);
 	}
 
 	/**
@@ -141,10 +139,12 @@ export default class TitleBar {
 	 * When the user clicks the close butten
 	 */
 	private handleClose(): any {
-		if (!this.isWindows && !this.isLinux) {
-			remote.getCurrentWindow().hide();
-		} else {
-			remote.getCurrentWindow().close();
+		if(env.name != 'test'){
+			if (!this.isWindows && !this.isLinux) {
+				remote.getCurrentWindow().hide();
+			} else {
+				remote.getCurrentWindow().close();
+			}
 		}
 
 		Events.trigger('titlebar.close');		

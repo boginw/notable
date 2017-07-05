@@ -79,7 +79,7 @@ export default class Editor {
 
 	public openFile(filename: string, contents: string) {
 		this.openedFile = filename;
-		if(path.extname(filename) == '.png'){
+		if(path.extname(filename) == '.png' || path.extname(filename) == '.svg'){
 			this.imageHolder.style.display = 'flex';
 			this.editorHolder.style.display = 'none';
 

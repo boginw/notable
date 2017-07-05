@@ -40,7 +40,8 @@ namespace Notable {
 			new ZoomFactor().zoom();
 
 			// Create our title bar
-			let titleBar:TitleBar = new TitleBar();
+			let titleBar:TitleBar = new TitleBar(
+				<HTMLElement>document.querySelector('.header.bordered'));
 
 			// Initialize the editor
 			this.editor = new Editor(this.startingPath);
