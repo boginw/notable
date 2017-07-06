@@ -14,6 +14,34 @@ describe('TitleBar', function () {
 		});
 	});
 
+	it('Should fullscreen the app', function (done) {
+		let base: HTMLElement = document.createElement('div');
+		let titleBar = new TitleBar(base);
+		let called: boolean = false;		
+
+		remote.getCurrentWindow().on('maximize', ()=>{
+			if(!called){			
+				done();
+			}
+		});
+
+		(<HTMLElement>base.querySelector('.button-fullscreen')).click();
+	});
+	
+	it('Should minimize the app', function (done) {
+		let base: HTMLElement = document.createElement('div');
+		let titleBar = new TitleBar(base);
+		let called: boolean = false;
+
+		remote.getCurrentWindow().on('minimize', ()=>{
+			if(!called){
+				done();
+			}
+		});
+
+		(<HTMLElement>base.querySelector('.button-minimize')).click();
+	});
+
 	it('Triggers when logo is clicked', function (done) {
 		let base: HTMLElement = document.createElement('div');
 		let titleBar = new TitleBar(base);
@@ -36,16 +64,6 @@ describe('TitleBar', function () {
 		(<HTMLElement>base.querySelector('.login')).click();
 	});
 
-	it('Should fullscreen the app', function (done) {
-		let base: HTMLElement = document.createElement('div');
-		let titleBar = new TitleBar(base);
-		
-		remote.getCurrentWindow().on('maximize', ()=>{
-			done();
-		});
-
-		(<HTMLElement>base.querySelector('.button-fullscreen')).click();
-	});
 	
 	it('Triggers when fullscreen is clicked', function (done) {
 		let base: HTMLElement = document.createElement('div');
@@ -58,16 +76,6 @@ describe('TitleBar', function () {
 		(<HTMLElement>base.querySelector('.button-fullscreen')).click();
 	});
 
-	it('Should minimize the app', function (done) {
-		let base: HTMLElement = document.createElement('div');
-		let titleBar = new TitleBar(base);
-
-		remote.getCurrentWindow().on('minimize', ()=>{
-			done();
-		});
-
-		(<HTMLElement>base.querySelector('.button-minimize')).click();
-	});
 
 	it('Triggers when minimize is clicked', function (done) {
 		let base: HTMLElement = document.createElement('div');
@@ -80,7 +88,7 @@ describe('TitleBar', function () {
 		(<HTMLElement>base.querySelector('.button-minimize')).click();
 	});
 
-	it('Should close when close is clicked', function (done) {
+	it('Triggers when close is clicked', function (done) {
 		let base: HTMLElement = document.createElement('div');
 		let titleBar = new TitleBar(base);
 
@@ -90,4 +98,5 @@ describe('TitleBar', function () {
 		
 		(<HTMLElement>base.querySelector('.button-close')).click();
 	});
+
 });

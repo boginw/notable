@@ -9,7 +9,7 @@ import {
 	EditorModule,
 } from '../../../interfaces';
 import Toolbar from './Toolbar';
-import Events from '../../../modules/application/Events/Events';
+import Events from '../Events/Events';
 
 
 export default class Editor {
@@ -79,6 +79,11 @@ export default class Editor {
 
 	public openFile(filename: string, contents: string) {
 		this.openedFile = filename;
+		
+		if(this.md.isPreviewActive()){
+			this.md.togglePreview();
+		}
+
 		if(path.extname(filename) == '.png' || path.extname(filename) == '.svg'){
 			this.imageHolder.style.display = 'flex';
 			this.editorHolder.style.display = 'none';
