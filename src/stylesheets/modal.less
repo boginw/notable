@@ -37,6 +37,30 @@
 /* Modal Body */
 .modal-body {
     padding: 2px 16px;
+
+    & .button-container{
+        display: flex;
+        max-width: 200px;
+        margin-left: auto;
+
+        & button{
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor:pointer;
+
+            flex-grow: 1;
+        }
+
+        & button:nth-child(2){
+            background-color: #f44336;
+        }
+    }  
 }
 
 /* Modal Footer */
@@ -59,7 +83,7 @@
     -webkit-animation-name: animatetop;
     -webkit-animation-duration: 0.4s;
     animation-name: animatetop;
-    animation-duration: 0.4s
+    animation-duration: 0.4s;
 }
 
 /* Add Animation */

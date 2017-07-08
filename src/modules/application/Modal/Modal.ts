@@ -1,8 +1,7 @@
 import Events from '../Events/Events';
 
-export default class Modal {
-	private modal: HTMLDivElement;
-	private click: (event: MouseEvent)=> void;
+export class Modal {
+	protected modal: HTMLDivElement;
 	private clickOutsideClose: boolean = true;
 
 	/**
@@ -13,9 +12,6 @@ export default class Modal {
 	constructor(contents: HTMLElement, title: string, private hasCloseButton: boolean = true) {
 		// Render the modal
 		this.modal = this.renderModal(title, contents);
-
-		// Add modal to body
-		document.body.appendChild(this.modal);
 	}
 
 	/**
@@ -25,6 +21,8 @@ export default class Modal {
 		Events.trigger('modal.show');
 		
 		if(this.modal){
+			// Add modal to body
+			document.body.appendChild(this.modal);
 			this.modal.style.display = "flex";			
 		}
 	}
@@ -58,7 +56,7 @@ export default class Modal {
 	 * @param body Body of the modal
 	 * @return the modal element
 	 */
-	private renderModal(title: string, body: HTMLElement): HTMLDivElement{
+	protected renderModal(title: string, body: HTMLElement): HTMLDivElement{
 		// Create the modal container
 		let base: HTMLDivElement = document.createElement('div');
 		base.className = 'modal';
@@ -87,7 +85,7 @@ export default class Modal {
 	 * @param contents Contents of the modal
 	 * @return Rendered version of the modal contents
 	 */
-	private renderBody(contents: HTMLElement): HTMLDivElement{
+	protected renderBody(contents: HTMLElement): HTMLDivElement{
 		let body: HTMLDivElement = document.createElement('div');
 		body.className = 'modal-body';
 		body.appendChild(contents);
@@ -100,7 +98,7 @@ export default class Modal {
 	 * @param titleText Modal title text
 	 * @return Rendered version of the modal header
 	 */
-	private renderHeader(titleText: string): HTMLDivElement{
+	protected renderHeader(titleText: string): HTMLDivElement{
 		let header: HTMLDivElement = document.createElement('div');
 		header.className = 'modal-header';
 
@@ -125,3 +123,58 @@ export default class Modal {
 		return header;
 	}
 }
+
+export class Confirm extends Modal{
+
+	/**
+	 * Default Constructor
+	 * @param title Title of the confirm dialog
+	 * @param contents Confirm message
+	 * @param confirm Confirm text
+	 * @param cancel Cancel text
+	 */
+	constructor(title: string, contents: string, 
+			private confirm: string = "OK", 
+			private cancel: string = "Cancel"){
+		
+		// Well we need to feed it something
+		super(document.createElement('div'), "", false);
+
+		// Rerender
+		this.modal = this.renderConfirm(title, contents);
+	}
+
+	private renderConfirm(title: string, contents: string): HTMLDivElement{
+		let bodyContents: HTMLDivElement = document.createElement('div');
+
+		bodyContents.innerHTML = `<h3>${contents}</h3>`;
+
+		let buttonContainer = document.createElement('div');
+		buttonContainer.className = "button-container";
+
+		buttonContainer.appendChild(this.renderButton(this.confirm,()=>{
+			Events.trigger('confirm.OK');
+			this.close();			
+		}));
+
+		buttonContainer.appendChild(this.renderButton(this.cancel,()=>{
+			Events.trigger('confirm.Cancel');
+			this.close();		
+		}));
+
+		bodyContents.appendChild(buttonContainer);
+
+		return this.renderModal(title, bodyContents);
+	}
+
+	private renderButton(title: string, action: (...any)=>any): HTMLButtonElement{
+		let button: HTMLButtonElement = document.createElement('button');
+		button.innerText = title;
+
+		button.onclick = action;
+
+		return button;
+	}
+}
+
+export default { Confirm, Modal };

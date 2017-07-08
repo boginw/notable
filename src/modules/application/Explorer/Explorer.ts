@@ -11,6 +11,7 @@ import TimeAgo from '../../../helpers/timeago';
 import Events from '../../../modules/application/Events/Events';
 import IO from '../IO/IO';
 import FileNode from './FileNode';
+import Persist from '../Persist/Persist';
 
 export default class Explorer {
 	private defaultPath: string;
@@ -39,6 +40,9 @@ export default class Explorer {
 			throw "Could not ensure that " + defaultPath + " exists...";
 		}
 
+		let settings: any = Persist.load('explorer');
+
+
 		let homeDirNavigation: HTMLDivElement =
 			<HTMLDivElement>document.querySelector('.pathItem.home');
 
@@ -50,6 +54,18 @@ export default class Explorer {
 
 		this.currentPath = defaultPath;
 
+		this.sortalpha = !settings.sort;
+		this.sortSwitch(settings.sort, (val) => {
+			settings.sort = val;
+			this.sortalpha = !val;
+			this.sortFiles();
+
+			this.root.remove();
+			this.root = this.renderExplorer(this.fileNodes);
+			this.base.appendChild(this.root);
+			Persist.save('explorer', settings);
+		});
+
 		this.monitor(defaultPath);
 		this.fileEvents();
 
@@ -59,6 +75,19 @@ export default class Explorer {
 
 	public save(filePath: string, contents: string): void {
 		IO.saveFile(filePath, contents);
+	}
+
+	private sortSwitch(on: boolean, change: (val: boolean)=>any){
+		let switchBase: HTMLLabelElement = 
+			<HTMLLabelElement> document.querySelector('.sort .switch');
+		let switchEl: HTMLInputElement = 
+			<HTMLInputElement> switchBase.querySelector('input[type=checkbox]');
+
+		switchEl.checked = on;
+
+		switchEl.onchange = (event: Event) => {
+			change(switchEl.checked);
+		};
 	}
 
 	private emptyContextMenu(base: HTMLElement, strict: boolean = true) {
