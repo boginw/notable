@@ -6,7 +6,7 @@ import IO from '../IO/IO';
 const userData = app.getPath('userData');
 
 export default class Persist {
-	public static load(key: string): object {
+	public static load(key: string): any {
 		let stateStoreFile = 'window-state-' + key + '.json';
 		let fullPath = path.join(userData, stateStoreFile);
 

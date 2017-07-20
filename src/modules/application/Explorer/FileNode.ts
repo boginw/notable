@@ -297,7 +297,7 @@ export default class FileNode {
 
 		title.appendChild(this.renameInput);
 
-		let timeAgo: string = typeof file != 'boolean' ? this.ta.ago(new Date(file.stat.mtime)) : '';
+		let timeAgo: string = typeof file != 'boolean' ? this.ta.ago(new Date(file.stat.atime)) : '';
 		// Only files have preview and lastmod
 		if ((!isFile && file) || (typeof file != 'boolean' && !file.stat.isDirectory())) {
 			// Files should be draggable

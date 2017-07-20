@@ -8,10 +8,13 @@ import {
 	NoteBook
 } from '../../../interfaces';
 import TimeAgo from '../../../helpers/timeago';
-import Events from '../../../modules/application/Events/Events';
+import Events from '../Events/Events';
 import IO from '../IO/IO';
-import FileNode from './FileNode';
 import Persist from '../Persist/Persist';
+
+import FileNode from './FileNode';
+import Render from './Render';
+import Navigator from './Navigator';
 
 export default class Explorer {
 	private defaultPath: string;
@@ -20,6 +23,8 @@ export default class Explorer {
 	private root: HTMLUListElement;
 	private fileNodes: FileNode[] = [];
 	private fileTree: FileNode[] = [];
+	private navigator: Navigator;
+
 	// Sort by date?
 	// TODO: move this elsewhere (preferably in a persiatant form)
 	private sortalpha: boolean = true;
@@ -41,7 +46,9 @@ export default class Explorer {
 		}
 
 		let settings: any = Persist.load('explorer');
-
+		this.navigator = new Navigator(this.defaultPath, (dir)=>{
+			this.closeDirectory(dir);
+		});
 
 		let homeDirNavigation: HTMLDivElement =
 			<HTMLDivElement>document.querySelector('.pathItem.home');
@@ -50,7 +57,7 @@ export default class Explorer {
 			this.closeDirectory(this.defaultPath);
 		};
 
-		this.emptyContextMenu(this.base);
+		Render.emptyContextMenu(this.base);
 
 		this.currentPath = defaultPath;
 
@@ -60,9 +67,7 @@ export default class Explorer {
 			this.sortalpha = !val;
 			this.sortFiles();
 
-			this.root.remove();
-			this.root = this.renderExplorer(this.fileNodes);
-			this.base.appendChild(this.root);
+			this.root = Render.rerender(this.fileNodes, this.root, this.base);
 			Persist.save('explorer', settings);
 		});
 
@@ -88,33 +93,6 @@ export default class Explorer {
 		switchEl.onchange = (event: Event) => {
 			change(switchEl.checked);
 		};
-	}
-
-	private emptyContextMenu(base: HTMLElement, strict: boolean = true) {
-		base.addEventListener('contextmenu', (ev: PointerEvent) => {
-			if (ev.srcElement == this.root || !strict) {
-				Menu.buildFromTemplate([
-					{
-						label: 'New Note',
-						role: 'new',
-						click: () => {
-							Events.trigger('file.newFile');
-						},
-					}, {
-						label: 'New Folder',
-						role: 'newFolder',
-						click: () => {
-							Events.trigger('file.newFolder');
-						},
-					}, {
-						type: 'separator',
-					}, {
-						label: 'Folder Properties',
-						role: 'propFolder',
-					}
-				]).popup(remote.getCurrentWindow());
-			}
-		}, true);
 	}
 
 	private newFile(isFile: boolean = true): void {
@@ -214,7 +192,6 @@ export default class Explorer {
 			this.newFile();			
 		});
 	}
-
 
 	// TODO: needs more abstraction
 	/**
@@ -320,21 +297,6 @@ export default class Explorer {
 		return -1;
 	}
 
-	/**
-	 * Scan folder for files
-	 * @param {string} dir Directory to scan
-	 */
-	private scanFolder(dir: string): FileNode[] {
-		// Get all files in the current working directory
-		let files: NotableFile[] = IO.filesInDirectory(dir);
-		let fileNodes: FileNode[] = [];
-		// Render and store files
-		for (let i = 0; i < files.length; i++) {
-			fileNodes.push(this.createFileNode(files[i]));
-		}
-		return fileNodes;
-	}
-
 	// TODO: merge with closeDirectory
 	private openDirectory(dirPath: string): void {
 		// Scan the new folder
@@ -343,10 +305,10 @@ export default class Explorer {
 		});
 
 		this.sortFiles();
-		this.updateNavigator(dirPath);
+		this.navigator.updateNavigator(dirPath);
 
 		// Create a new root
-		let newRoot: HTMLUListElement = this.renderExplorer(this.fileNodes);
+		let newRoot: HTMLUListElement = Render.renderExplorer(this.fileNodes);
 		this.base.appendChild(newRoot);
 
 		if (this.root != undefined) {
@@ -380,14 +342,14 @@ export default class Explorer {
 			return;
 		}
 
-		this.updateNavigator(dirPath);
+		this.navigator.updateNavigator(dirPath);
 
 		this.fileNodes = this.fileTree.filter((fileNode: FileNode): boolean => {
 			return path.dirname(fileNode.file.name) == dirPath;
 		});
 
 		this.sortFiles();
-		let newRoot: HTMLUListElement = this.renderExplorer(this.fileNodes);
+		let newRoot: HTMLUListElement = Render.renderExplorer(this.fileNodes);
 		newRoot.classList.add("animateOut");
 		this.base.appendChild(newRoot);
 		// TODO: find it again?
@@ -410,39 +372,6 @@ export default class Explorer {
 		}, false);
 
 		this.currentPath = dirPath;
-	}
-
-	private updateNavigator(dirPath: string) {
-		let navigation: HTMLDivElement =
-			<HTMLDivElement>document.querySelector('.settings.navigation');
-		let relativePath: string = dirPath.replace(this.defaultPath, '');
-		if (relativePath[0] == path.sep) {
-			relativePath = relativePath.substr(1);
-		}
-		let directorySplitted: string[];
-		if (relativePath.length == 0) {
-			directorySplitted = [];
-		} else {
-			directorySplitted = relativePath.split(path.sep);
-		}
-
-		while (directorySplitted.length + 1 != navigation.children.length) {
-			if (directorySplitted.length + 1 > navigation.children.length) {
-				let newPath: HTMLDivElement = document.createElement('div');
-				newPath.className = 'pathItem';
-				newPath.innerText = directorySplitted[navigation.children.length - 1];
-				newPath.onclick = () => {
-					let updatedPath: string = this.defaultPath + path.sep +
-						directorySplitted.slice(0, navigation.children.length - 1).join(path.sep);
-					this.closeDirectory(updatedPath);
-				};
-				navigation.appendChild(newPath);
-			} else {
-				if (navigation != null && navigation.lastElementChild != null) {
-					navigation.lastElementChild.remove();
-				}
-			}
-		}
 	}
 
 	private createFileNode(file: NotableFile): FileNode {
@@ -489,41 +418,5 @@ export default class Explorer {
 		return 0;
 	}
 
-	/**
-	 * Renders the explorer side-bar
-	 * @param dir Directory to render
-	 * @param base Base html element
-	 */
-	private renderExplorer(files: FileNode[]): HTMLUListElement {
-		let newRoot: HTMLUListElement = document.createElement('ul');
-
-		// No files? show message that folder is empty
-		if (files.length == 0) {
-			newRoot.appendChild(this.renderEmpty());
-			return newRoot;
-		}
-
-		// Render files
-		for (let i = 0; i < files.length; i++) {
-			newRoot.appendChild(files[i].node);
-		}
-
-		return newRoot;
-	}
-
-	/**
-	 * Show that this folder is empty by displaying a message
-	 * @return {HTMLDivElement} Element containing message
-	 */
-	private renderEmpty(): HTMLDivElement {
-		let empty: HTMLDivElement = document.createElement('div');
-		empty.className = "empty-folder";
-		empty.innerHTML = `<div>
-            <i class="icon material-icons">sentiment_neutral</i>
-            <h3>This folder seems empty...</h3>
-            <h4>Would you like to create a notebook?<br />Just right-click here!</h4>
-        </div>`;
-		this.emptyContextMenu(empty, false);
-		return empty;
-	}
+	
 }

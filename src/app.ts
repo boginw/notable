@@ -5,6 +5,7 @@ const { remote } = require('electron'); // native electron module
 const { app, dialog, clipboard, Menu } = remote;
 const jetpack = require('fs-jetpack'); // module loaded from npm
 
+
 import { devMenuTemplate } from './menu/dev_menu_template';
 import { editMenuTemplate } from './menu/edit_menu_template';
 import env from './env';
@@ -15,6 +16,8 @@ import TitleBar from './modules/application/TitleBar/TitleBar';
 import Explorer from './modules/application/Explorer/Explorer';
 import Editor from './modules/application/Editor/Editor';
 import Events from './modules/application/Events/Events';
+import GitHub from './modules/application/GitHub/GitHub';
+import Persist from './modules/application/Persist/Persist';
 
 import {
 	EditorModule,
@@ -30,6 +33,7 @@ namespace Notable {
 		private startingPath: string;
 		private saveIntervals: any;
 		private editor: Editor;
+
 		/**
 		 * Default constructor
 		 */
@@ -40,7 +44,7 @@ namespace Notable {
 			new ZoomFactor().zoom();
 
 			// Create our title bar
-			let titleBar:TitleBar = new TitleBar(
+			let titleBar: TitleBar = new TitleBar(
 				<HTMLElement>document.querySelector('.header.bordered'));
 
 			// Initialize the editor
@@ -82,7 +86,22 @@ namespace Notable {
 			});
 
 			Events.on('titlebar.login', () => {
-				alert("Coming soon");
+				let github:GitHub = new GitHub(
+					env.github_id,
+					env.github_secret,
+					['user','user:email', 'repo']
+				);
+
+				github.startRequest((access_token, err) => {
+					if (err) {
+						console.error(err);
+					}
+
+					github.userInfo((respondse, err) => {
+						console.log(access_token, respondse, err);
+					});
+				});
+
 			});
 		}
 
@@ -106,7 +125,7 @@ namespace Notable {
 
 	document.addEventListener('DOMContentLoaded', () => {
 		// Start application
-		let notable:Notable = new Notable();
+		let notable: Notable = new Notable();
 	});
 
 
