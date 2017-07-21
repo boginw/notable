@@ -17,7 +17,6 @@ import Explorer from './modules/application/Explorer/Explorer';
 import Editor from './modules/application/Editor/Editor';
 import Events from './modules/application/Events/Events';
 import GitHub from './modules/application/GitHub/GitHub';
-import Persist from './modules/application/Persist/Persist';
 
 import {
 	EditorModule,
@@ -85,6 +84,7 @@ namespace Notable {
 				}, 1500);
 			});
 
+			// Login with GitHub
 			Events.on('titlebar.login', () => {
 				let github:GitHub = new GitHub(
 					env.github_id,
@@ -92,13 +92,14 @@ namespace Notable {
 					['user','user:email', 'repo']
 				);
 
-				github.startRequest((access_token, err) => {
+				github.auth((access_token, err) => {
 					if (err) {
 						console.error(err);
 					}
 
 					github.userInfo((respondse, err) => {
 						console.log(access_token, respondse, err);
+						alert("You're now logged in. Sync features pending...");
 					});
 				});
 
