@@ -83,5 +83,4 @@ export default class GitHub {
 				callback(response);
 			});
 	}
-
 }

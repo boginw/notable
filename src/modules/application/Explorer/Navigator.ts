@@ -11,14 +11,24 @@ import Events from '../Events/Events';
 
 export default class Navigator {
 	private defaultPath: string;
+	private currentPath: string;
 	private callback: (dirPath: string) => any;
 
 	constructor(defaultPath: string, callback: (dirPath: string) => any) {
 		this.defaultPath = defaultPath;
+		this.currentPath = defaultPath;
 		this.callback = callback;
+
+		Events.on("navigator.up", () => {
+			if(this.defaultPath != this.currentPath){
+				let newPath = this.currentPath.split(path.sep).slice(0,-1).join(path.sep);
+				this.callback(newPath);
+			}
+		});
 	}
 
 	public updateNavigator(dirPath: string) {
+		this.currentPath = dirPath;
 		let navigation: HTMLDivElement =
 			<HTMLDivElement>document.querySelector('.settings.navigation');
 		let relativePath: string = dirPath.replace(this.defaultPath, '');

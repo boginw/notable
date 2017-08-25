@@ -7,6 +7,7 @@ import {
 } from '../../../interfaces';
 
 import FileNode from './FileNode';
+import HoverEngine from './HoverEngine';
 import Events from '../Events/Events';
 
 
@@ -27,6 +28,7 @@ export default class Render {
 		return root;
 	}
 
+
 	/**
 	 * Renders the explorer side-bar
 	 * @param {FileNode[]} files The files in the explorer
@@ -34,6 +36,20 @@ export default class Render {
 	 */
 	public static renderExplorer(files: FileNode[]): HTMLUListElement {
 		let newRoot: HTMLUListElement = document.createElement('ul');
+		
+		// Why? to force chrome to accept that this list can have focus
+		newRoot.tabIndex = 1;
+		newRoot.id = "explorerCanHasFocus";
+
+		let hoverEngine = new HoverEngine(newRoot); 
+
+		newRoot.onfocus = (ev: FocusEvent) : any => {
+			hoverEngine.attach();
+		};
+
+		newRoot.onblur = (ev: FocusEvent) : any => {
+			hoverEngine.detatch();
+		};
 
 		// No files? show message that folder is empty
 		if (files.length == 0) {

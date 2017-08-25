@@ -329,6 +329,9 @@ export default class Explorer {
 			let oldRoot: HTMLUListElement = this.root;
 
 			oldRoot.addEventListener("transitionend", function (event) {
+				setTimeout(()=>{
+					newRoot.focus();
+				},50);
 				oldRoot.remove();
 			}, false);
 		}
@@ -368,6 +371,9 @@ export default class Explorer {
 		this.root = newRoot;
 
 		oldRoot.addEventListener("transitionend", function (event) {
+			setTimeout(()=>{
+				newRoot.focus();
+			},50);		
 			oldRoot.remove();
 		}, false);
 

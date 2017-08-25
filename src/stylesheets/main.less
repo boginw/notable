@@ -245,6 +245,7 @@ tbody{
 }
 
 .folders_and_files{
+    user-select: none;
     -webkit-user-select: none;
     font-family: 'Roboto', sans-serif;
     position: relative;
@@ -301,6 +302,10 @@ tbody{
     }
 }
 
+.folders_and_files ul li.hover .folderName .title{
+    opacity: 0.7;
+}
+
 .folders_and_files ul li .folderName .title{
     background: rgba(52, 73, 94, 0.8);
     color: #fff;
@@ -346,10 +351,13 @@ tbody{
         color:white;
     }
 }
-.folders_and_files .title:hover{
+
+.folders_and_files .title:hover,
+.folders_and_files li.hover .title{
     background-color: rgba(48, 147, 236, 0.71);
     color:white;
 }
+
 .folders_and_files>ul>li .fileName{
     color: inherit;
 }
@@ -357,10 +365,8 @@ tbody{
 .folders_and_files .fileName{
     color:#7f8c8d;
 }
-.folders_and_files .folderName{
- //   color: #2c3e50;
-}
-.folders_and_files ul li:hover > .fileName{
+.folders_and_files ul li:hover > .fileName,
+.folders_and_files ul li.hover > .fileName{
     color:#000;
 }
 
@@ -565,6 +571,7 @@ tbody{
     background: rgba(255, 255, 255, 0);
     border-right: 1px solid #CAD5E0;
     border-bottom: 1px solid #CAD5E0;
+    transform: rotate(-45deg);
     -moz-transform: rotate(-45deg);
     -webkit-transform: rotate(-45deg);
 }
@@ -587,7 +594,7 @@ tbody{
   display: inline-block;
   width: 30px;
   height: 18px;
-  float: left;
+  /*float: left;*/
   margin: 5px;
 }
 
@@ -643,3 +650,25 @@ input:checked + .slider:before {
     word-break: break-word;
     overflow-wrap: break-word;
 }
+
+.login-agreement{
+    max-height: 50vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 11px;
+    text-align: justify;
+    border: 2px #939393 solid;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+#i-agree{
+    margin-bottom: 10px;
+}
+
+#explorerCanHasFocus {
+    outline: none;
+}
+
+
