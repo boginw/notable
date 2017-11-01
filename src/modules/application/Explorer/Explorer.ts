@@ -10,11 +10,13 @@ import {
 import TimeAgo from '../../../helpers/timeago';
 import Events from '../Events/Events';
 import IO from '../IO/IO';
+import IIO from '../IO/IIO';
 import Persist from '../Persist/Persist';
 
 import FileNode from './FileNode';
 import Render from './Render';
 import Navigator from './Navigator';
+import IIOWatcher from '../IO/IIOWatcher';
 
 export default class Explorer {
 	private defaultPath: string;
@@ -24,6 +26,7 @@ export default class Explorer {
 	private fileNodes: FileNode[] = [];
 	private fileTree: FileNode[] = [];
 	private navigator: Navigator;
+	private io:IIO;
 
 	// Sort by date?
 	// TODO: move this elsewhere (preferably in a persiatant form)
@@ -35,51 +38,55 @@ export default class Explorer {
 	 *                             should start 
 	 */
 	constructor(defaultPath: string) {
-
+		this.io = new IO();
 		this.defaultPath = defaultPath;
 		// Find our base for files and folders
 		this.base = <HTMLDivElement>document.querySelector('.folders_and_files');
 
 		// Ensure that the default path exists
-		if (!IO.ensureFolderExists(defaultPath)) {
+		let ensurement = this.io.ensureFolderExists(defaultPath);
+
+		ensurement.then(()=>{
+			let settings: any = Persist.load('explorer');
+			this.navigator = new Navigator(this.defaultPath, (dir)=>{
+				this.closeDirectory(dir);
+			});
+	
+			let homeDirNavigation: HTMLDivElement =
+				<HTMLDivElement>document.querySelector('.pathItem.home');
+	
+			homeDirNavigation.onclick = () => {
+				this.closeDirectory(this.defaultPath);
+			};
+	
+			Render.emptyContextMenu(this.base);
+	
+			this.currentPath = defaultPath;
+	
+			this.sortalpha = !settings.sort;
+			this.sortSwitch(settings.sort, (val) => {
+				settings.sort = val;
+				this.sortalpha = !val;
+				this.sortFiles();
+	
+				this.root = Render.rerender(this.fileNodes, this.root, this.base);
+				Persist.save('explorer', settings);
+			});
+	
+			this.monitor(defaultPath);
+			this.fileEvents();
+	
+			// Maybe activate this again later
+			this.openDirectory(defaultPath);
+		});
+
+		ensurement.catch(()=>{
 			throw "Could not ensure that " + defaultPath + " exists...";
-		}
-
-		let settings: any = Persist.load('explorer');
-		this.navigator = new Navigator(this.defaultPath, (dir)=>{
-			this.closeDirectory(dir);
 		});
-
-		let homeDirNavigation: HTMLDivElement =
-			<HTMLDivElement>document.querySelector('.pathItem.home');
-
-		homeDirNavigation.onclick = () => {
-			this.closeDirectory(this.defaultPath);
-		};
-
-		Render.emptyContextMenu(this.base);
-
-		this.currentPath = defaultPath;
-
-		this.sortalpha = !settings.sort;
-		this.sortSwitch(settings.sort, (val) => {
-			settings.sort = val;
-			this.sortalpha = !val;
-			this.sortFiles();
-
-			this.root = Render.rerender(this.fileNodes, this.root, this.base);
-			Persist.save('explorer', settings);
-		});
-
-		this.monitor(defaultPath);
-		this.fileEvents();
-
-		// Maybe activate this again later
-		// this.openDirectory(defaultPath);
 	}
 
 	public save(filePath: string, contents: string): void {
-		IO.saveFile(filePath, contents);
+		this.io.saveFile(filePath, contents);
 	}
 
 	private sortSwitch(on: boolean, change: (val: boolean)=>any){
@@ -105,10 +112,12 @@ export default class Explorer {
 
 	private clickFile(filenode: FileNode): void {
 		if (!filenode.file.stat.isDirectory()) {
-			Events.trigger('explorer.open',
-				filenode.file,
-				IO.openFile(filenode.file.name)
-			);
+			this.io.openFile(filenode.file.name).then((contents:string)=>{
+				Events.trigger('explorer.open',
+					filenode.file,
+					contents
+				);
+			});
 
 			this.fileTree.forEach(element => {
 				element.setOpen(false);
@@ -129,12 +138,12 @@ export default class Explorer {
 			if (!filenode.file.stat.isDirectory()) {
 				if (confirm("Are you sure you want to delete this file? This cannot be undone.")) {
 					filenode.fileRemoved();
-					IO.deleteFile(filenode.file.name);
+					this.io.deleteFile(filenode.file.name);
 				}
 			} else {
 				if (confirm("Are you sure you want to delete this folder and all its contents? This cannot be undone.")) {
 					filenode.fileRemoved();
-					IO.deleteFolder(filenode.file.name);
+					this.io.deleteFolder(filenode.file.name);
 				}
 			}
 		});
@@ -163,24 +172,25 @@ export default class Explorer {
 				preview: filenode.file.preview,
 			};
 
-			IO.rename(filenode.file.name, newFile.name);
-
-			Events.trigger('rename',
-				filenode.file, newFile.name
-			);
-			filenode.file = newFile;
+			this.io.rename(filenode.file.name, newFile.name).then(()=>{
+				Events.trigger('rename',
+					filenode.file, newFile.name
+				);
+				filenode.file = newFile;
+			});
 		});
 
 		Events.on('file.create', (filenode: FileNode, contents: string) => {
 			let filename: string = path.join(this.currentPath, contents);
 			if (filenode.isFile) {
 				filename += '.md';
-				IO.saveFile(filename, "", ()=>{
+				this.io.saveFile(filename, "").then(()=>{
 					this.insertFile(filename, false, true);
 				});
 			} else {
-				IO.createFolder(filename);
-				this.insertFile(filename, false, true);
+				this.io.createFolder(filename).then(() => {
+					this.insertFile(filename, false, true);
+				});
 			}
 		});
 
@@ -200,86 +210,90 @@ export default class Explorer {
 	 * @param {string} dir Directory to monitor
 	 */
 	private monitor(dir: string): void {
-		IO.watchDirectory(dir, (f: string | object, curr, prev) => {
-			if (typeof f == "object" && prev === null && curr === null) {
-				// Finished walking the tree
-				console.log("Directory monitor ready");
-				this.fileTree = [];
-
-				for (let key in f) {
-					this.fileTree.push(
-						this.createFileNode(IO.fileFromPath(key, f[key])));
+		this.io.watchDir(dir).then((watcher:IIOWatcher) => {
+			watcher.on('change', (evt:string, name:string)=>{
+				let index: number;
+				switch(evt){
+					case 'update':
+						index = this.findFile(name);
+						if (index != -1) {
+							this.io.fileFromPath(name).then((changedFile:NotableFile)=>{
+								this.fileTree[index].file = changedFile;
+								this.io.openFile(this.fileTree[index].file.name).then((contents:string)=>{
+									Events.trigger('changed',
+										this.fileTree[index].file,
+										contents
+									);
+								});
+							});
+						} else {
+							this.insertFile(name);	
+						}
+						break;
+					case 'remove':
+						index = this.findFile(name);
+						if (index != -1) {
+							this.fileTree[index].fileRemoved();
+							Events.trigger('deleted',
+								this.fileTree[index].file,
+							);
+							this.fileTree.splice(index, 1);
+						}
+						break;
 				}
-
-				this.openDirectory(dir);
-			} else if (prev === null) {
-				// f is a new file
-				this.insertFile(f.toString(), curr);
-
-			} else if (curr.nlink === 0) {
-				// f was removed
-				let index: number = this.findFile(f.toString());
-				if (index != -1) {
-					this.fileTree[index].fileRemoved();
-					Events.trigger('deleted',
-						this.fileTree[index].file,
-					);
-					this.fileTree.splice(index, 1);
-				}
-			} else {
-				// f was changed
-				let index: number = this.findFile(f.toString());
-				if (index != -1) {
-					this.fileTree[index].file =
-						IO.fileFromPath(f.toString(), curr);
-					Events.trigger('changed',
-						this.fileTree[index].file,
-						IO.openFile(this.fileTree[index].file.name)
-					);
-				}
-			}
+			});
+			
+			watcher.on('error', (err:string)=>{
+				throw err;
+			});
 		});
 	}
 
-	private insertFile(filepath: string, stats?: any, openAfter?: boolean): FileNode {
+	private insertFile(filepath: string, stats?: any, openAfter?: boolean): Promise<FileNode> {
 		let index: number = this.findFile(filepath);
 		if (index == -1) {
-			let file: NotableFile = stats == undefined ?
-				IO.fileFromPath(filepath) :
-				IO.fileFromPath(filepath, stats);
-			let fileNode: FileNode = this.createFileNode(file);
-			let inserted: boolean = false;
+			return new Promise<FileNode>(
+				(resolve: (value:FileNode) => void, reject:(reason: string)=> void) => {
+					this.io.fileFromPath(filepath, stats).then((file:NotableFile)=>{
+						let fileNode: FileNode = this.createFileNode(file);
+						let inserted: boolean = false;
+		
+						if (path.dirname(file.name) == this.currentPath) {
+							for (let i = 0; i < this.fileNodes.length; i++) {
+								if (this.sorter(fileNode, this.fileNodes[i]) == -1) {
+									this.root.insertBefore(fileNode.node, this.fileNodes[i].node);
+									inserted = true;
+									this.fileNodes.splice(i, 0, fileNode);
+									break;
+								}
+							}
+							if (!inserted) {
+								this.root.appendChild(fileNode.node);
+							}
+						}
+			
+						this.fileTree.push(fileNode);
+						if (openAfter) {
+							this.clickFile(fileNode);
+						}
 
-			if (path.dirname(file.name) == this.currentPath) {
-				for (let i = 0; i < this.fileNodes.length; i++) {
-					if (this.sorter(fileNode, this.fileNodes[i]) == -1) {
-						this.root.insertBefore(fileNode.node, this.fileNodes[i].node);
-						inserted = true;
-						this.fileNodes.splice(i, 0, fileNode);
-						break;
+						resolve(fileNode);
+					});
+				});
+		}
+		
+		return new Promise<FileNode>(
+			(resolve: (value:FileNode) => void, reject:(reason: string)=> void) => {
+				this.io.fileFromPath(filepath).then((file:NotableFile)=>{
+					this.fileTree[index].file = file;
+	
+					if (openAfter) {
+						this.clickFile(this.fileTree[index]);
 					}
-				}
-				if (!inserted) {
-					this.root.appendChild(fileNode.node);
-				}
-			}
-
-			this.fileTree.push(fileNode);
-			if (openAfter) {
-				this.clickFile(fileNode);
-			}
-
-			return fileNode;
-		} else {
-			this.fileTree[index].file = stats == undefined ?
-				IO.fileFromPath(filepath) :
-				IO.fileFromPath(filepath, stats);
-		}
-
-		if (openAfter) {
-			this.clickFile(this.fileTree[index]);
-		}
-		return this.fileTree[index];
+					
+					resolve(this.fileTree[index]);
+			});
+		});
 	}
 
 	/**
@@ -299,45 +313,51 @@ export default class Explorer {
 
 	// TODO: merge with closeDirectory
 	private openDirectory(dirPath: string): void {
-		// Scan the new folder
-		this.fileNodes = this.fileTree.filter((fileNode: FileNode): boolean => {
-			return path.dirname(fileNode.file.name) == dirPath;
+		this.io.filesInDirectory(dirPath).then((files:NotableFile[])=>{
+			for(let i = 0; i < files.length; i++){
+				this.fileTree.push(this.createFileNode(files[i]));
+			}
+		
+			// Scan the new folder
+			this.fileNodes = this.fileTree.filter((fileNode: FileNode): boolean => {
+				return path.dirname(fileNode.file.name) == dirPath;
+			});
+	
+			this.sortFiles();
+			this.navigator.updateNavigator(dirPath);
+	
+			// Create a new root
+			let newRoot: HTMLUListElement = Render.renderExplorer(this.fileNodes);
+			this.base.appendChild(newRoot);
+	
+			if (this.root != undefined) {
+	
+				newRoot.classList.add("animateIn");
+				// TODO: find it again?
+				newRoot = <HTMLUListElement>document.querySelector('.animateIn');
+				// Old root animate out
+				this.root.classList.add('animateOut');
+	
+				// Timeout needed for some wierd reason
+				setTimeout(() => {
+					// Animate new root in
+					newRoot.classList.remove('animateIn');
+				}, 5);
+	
+				// Switch roots
+				let oldRoot: HTMLUListElement = this.root;
+	
+				oldRoot.addEventListener("transitionend", function (event) {
+					setTimeout(()=>{
+						newRoot.focus();
+					},50);
+					oldRoot.remove();
+				}, false);
+			}
+	
+			this.root = newRoot;
+			this.currentPath = dirPath;
 		});
-
-		this.sortFiles();
-		this.navigator.updateNavigator(dirPath);
-
-		// Create a new root
-		let newRoot: HTMLUListElement = Render.renderExplorer(this.fileNodes);
-		this.base.appendChild(newRoot);
-
-		if (this.root != undefined) {
-
-			newRoot.classList.add("animateIn");
-			// TODO: find it again?
-			newRoot = <HTMLUListElement>document.querySelector('.animateIn');
-			// Old root animate out
-			this.root.classList.add('animateOut');
-
-			// Timeout needed for some wierd reason
-			setTimeout(() => {
-				// Animate new root in
-				newRoot.classList.remove('animateIn');
-			}, 5);
-
-			// Switch roots
-			let oldRoot: HTMLUListElement = this.root;
-
-			oldRoot.addEventListener("transitionend", function (event) {
-				setTimeout(()=>{
-					newRoot.focus();
-				},50);
-				oldRoot.remove();
-			}, false);
-		}
-
-		this.root = newRoot;
-		this.currentPath = dirPath;
 	}
 
 	private closeDirectory(dirPath: string): void {

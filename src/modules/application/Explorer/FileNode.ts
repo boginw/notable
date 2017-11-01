@@ -101,9 +101,7 @@ export default class FileNode {
 		if (this.node) {
 			try {
 				this.node.remove();
-			} catch (err) {
-				console.log(err);
-			}
+			} catch (ignore) {}
 		}
 	}
 

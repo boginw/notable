@@ -8,8 +8,8 @@ import {
 } from '../../../interfaces';
 
 export default class TitleBar {
-	private isWindows: boolean;
-	private isLinux: boolean;
+	public isWindows: boolean;
+	public isLinux: boolean;
 	private isFullscreen: boolean;
 	private base: HTMLElement;
 
