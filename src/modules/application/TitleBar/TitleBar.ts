@@ -66,6 +66,14 @@ export default class TitleBar {
 
 		this.base.appendChild(leftHeader);
 		this.base.appendChild(rightHeader);
+
+		remote.getCurrentWindow().on('maximize', ()=>{
+			this.base.classList.add("fullscreen");			
+		});
+
+		remote.getCurrentWindow().on('unmaximize', ()=>{
+			this.base.classList.remove("fullscreen");			
+		});
 	}
 
 	/**
@@ -111,6 +119,7 @@ export default class TitleBar {
 		let close: HTMLDivElement = document.createElement('div');
 		close.className = `button-close enabled 
 			${(this.isWindows ? 'windows-button' : 'button')}`;
+		close.innerHTML = '<div class="icon"></div>';	
 		close.onclick = () => {
 			this.handleClose();
 		};
@@ -166,8 +175,10 @@ export default class TitleBar {
 		if (this.isWindows || this.isLinux) {
 			if (remote.getCurrentWindow().isMaximized()) {
 				remote.getCurrentWindow().unmaximize();
+				this.base.classList.remove("fullscreen");
 			} else {
 				remote.getCurrentWindow().maximize();
+				this.base.classList.add("fullscreen");
 			}
 
 			this.isFullscreen = remote.getCurrentWindow().isMaximized();

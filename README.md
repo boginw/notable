@@ -21,6 +21,7 @@ You'll need [Node.js](https://nodejs.org) installed on your computer in order to
 > git clone https://github.com/boginw/notable
 > cd notable
 > npm install
+> npm build
 > npm start
 ```
 

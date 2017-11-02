@@ -21,7 +21,7 @@ describe('TitleBar', function () {
 
 		// Due to this: https://github.com/electron/electron/issues/1418
 		// This test cannot pass in this framework and therefore is ignored
-		if(!titleBar.isLinux){
+		if(titleBar.isWindows){
 			remote.getCurrentWindow().on('maximize', ()=>{
 				if(!called){
 					called = true;	
@@ -49,7 +49,7 @@ describe('TitleBar', function () {
 
 		// Due to this: https://github.com/electron/electron/issues/1418
 		// This test cannot pass in this framework and therefore is ignored
-		if(!titleBar.isLinux){
+		if(titleBar.isWindows){
 			remote.getCurrentWindow().on('minimize', ()=>{
 				if(!called){
 					called = true;
