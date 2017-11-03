@@ -4,7 +4,7 @@ const path = require('path');
 
 import {
 	NotableFile
-} from '../../../interfaces';
+} from '../../interfaces';
 
 import FileNode from './FileNode';
 import HoverEngine from './HoverEngine';

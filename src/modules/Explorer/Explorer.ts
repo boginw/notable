@@ -6,8 +6,8 @@ import {
 	NotableFile,
 	ExplorerContexts,
 	NoteBook
-} from '../../../interfaces';
-import TimeAgo from '../../../helpers/timeago';
+} from '../../interfaces';
+import TimeAgo from '../../helpers/timeago';
 import Events from '../Events/Events';
 import IO from '../IO/IO';
 import IIO from '../IO/IIO';

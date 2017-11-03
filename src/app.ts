@@ -5,19 +5,19 @@ const { remote } = require('electron'); // native electron module
 const { app, dialog, clipboard, Menu } = remote;
 const jetpack = require('fs-jetpack'); // module loaded from npm
 
-
 import { devMenuTemplate } from './menu/dev_menu_template';
 import { editMenuTemplate } from './menu/edit_menu_template';
 import env from './env';
 
 // Electron does not have HiDPI for Linux yet, so here's a workaround
-import ZoomFactor from './modules/application/ZoomFactor/ZoomFactor';
-import TitleBar from './modules/application/TitleBar/TitleBar';
-import Explorer from './modules/application/Explorer/Explorer';
-import Editor from './modules/application/Editor/Editor';
-import Events from './modules/application/Events/Events';
-import Sync from './modules/application/Sync/Sync';
-import Modal from './modules/application/Modal/Modal';
+import ZoomFactor from './modules/ZoomFactor/ZoomFactor';
+import TitleBar from './modules/TitleBar/TitleBar';
+import Explorer from './modules/Explorer/Explorer';
+import Editor from './modules/Editor/Editor';
+import Events from './modules/Events/Events';
+import Sync from './modules/Sync/Sync';
+import Modal from './modules/Modal/Modal';
+import PlugMan from './PlugMan/PlugMan';
 
 import {
 	EditorModule,
@@ -34,6 +34,7 @@ namespace Notable {
 		private saveIntervals: any;
 		private editor: Editor;
 		private modal: any;
+		private plugman: PlugMan;
 
 		/**
 		 * Default constructor
@@ -53,6 +54,13 @@ namespace Notable {
 
 			// Initialize project explorer
 			this.explorer = new Explorer(this.startingPath);
+
+			this.plugman = new PlugMan();
+			this.plugman.loadPlugins({"editor":this.editor,"explorer":this.explorer,"titlebar":titleBar}).then(() => {
+				console.log("Plugins loaded");
+			}).catch((err) => {
+				console.log("Plugin loading errored: ", err);
+			});
 
 			// When the user opens a file
 			Events.on('explorer.open', (file: NotableFile, contents: string) => {

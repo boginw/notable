@@ -1,11 +1,11 @@
 const { remote } = require('electron'); // native electron module
 
-import Events from '../../../modules/application/Events/Events';
-import env from '../../../env';
+import Events from '../Events/Events';
+import env from '../../env';
 
 import {
 	SimpleMDE,
-} from '../../../interfaces';
+} from '../../interfaces';
 
 export default class TitleBar {
 	public isWindows: boolean;

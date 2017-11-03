@@ -1,7 +1,7 @@
 import GitHub from './GitHub';
 import Persist from '../Persist/Persist';
 import LicenceAgree from './LicenceAgree';
-import env from '../../../env';
+import env from '../../env';
 
 export default class Sync {
 

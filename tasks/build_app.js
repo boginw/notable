@@ -42,11 +42,6 @@ gulp.task('bundle', function () {
 		bundle(distDir.path('app.js'), destDir.path('app.js')),
 	];
 
-	for (var i = 0; i < modules.length; i++) {
-		var modPath = path.join("modules", "editor", modules[i], modules[i] + '.js');
-		bundles.push(bundle(distDir.path(modPath), destDir.path(modPath)));
-	}
-
 	return Promise.all(bundles);
 });
 

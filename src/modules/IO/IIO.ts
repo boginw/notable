@@ -1,6 +1,6 @@
 import {
 	NotableFile
-} from '../../../interfaces';
+} from '../../interfaces';
 
 import IIOWatcher from './IIOWatcher';
 

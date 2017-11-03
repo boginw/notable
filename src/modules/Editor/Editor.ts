@@ -7,7 +7,7 @@ const { clipboard } = remote;
 import {
 	SimpleMDE,
 	EditorModule,
-} from '../../../interfaces';
+} from '../../interfaces';
 import Toolbar from './Toolbar';
 import Events from '../Events/Events';
 

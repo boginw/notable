@@ -3,7 +3,7 @@ let path = require('path');
 
 import {
 	NotableFile
-} from '../../../interfaces';
+} from '../../interfaces';
 
 import IIO from './IIO';
 import IIOWatcher from './IIOWatcher';
