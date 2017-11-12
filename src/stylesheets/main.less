@@ -671,4 +671,85 @@ input:checked + .slider:before {
     outline: none;
 }
 
+.syncOptions{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    grid-auto-rows: minmax(100px, auto);
 
+    & .syncButton {
+        border: 1px solid #c0c0c0;
+        cursor: pointer;
+        background-image: linear-gradient(#ececec 0%, #fcfcfc 100%);
+        width: 88px;
+        height: 100px;
+        display: inline-block;
+        box-sizing: border-box;
+        font-size: 11px;
+        padding: 8px 10px 12px;
+        user-select: none;
+
+        & img {
+            width: 60px;
+            height: 60px;
+            padding-bottom: 6px;
+            display: block;
+            margin: 0px auto;
+        }
+
+        & div{
+            text-overflow: ellipsis;
+            overflow: hidden;
+            text-align: center;
+        }
+    }
+}
+
+.spinner {
+    margin: 100px auto;
+    width: 40px;
+    height: 40px;
+    position: relative;
+    text-align: center;
+    
+    -webkit-animation: sk-rotate 2.0s infinite linear;
+    animation: sk-rotate 2.0s infinite linear;
+  }
+  
+  .dot1, .dot2 {
+    width: 60%;
+    height: 60%;
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    background-color: #333;
+    border-radius: 100%;
+    
+    -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
+    animation: sk-bounce 2.0s infinite ease-in-out;
+  }
+  
+  .dot2 {
+    top: auto;
+    bottom: 0;
+    -webkit-animation-delay: -1.0s;
+    animation-delay: -1.0s;
+  }
+  
+  @-webkit-keyframes sk-rotate { 100% { -webkit-transform: rotate(360deg) }}
+  @keyframes sk-rotate { 100% { transform: rotate(360deg); -webkit-transform: rotate(360deg) }}
+  
+  @-webkit-keyframes sk-bounce {
+    0%, 100% { -webkit-transform: scale(0.0) }
+    50% { -webkit-transform: scale(1.0) }
+  }
+  
+  @keyframes sk-bounce {
+    0%, 100% { 
+      transform: scale(0.0);
+      -webkit-transform: scale(0.0);
+    } 50% { 
+      transform: scale(1.0);
+      -webkit-transform: scale(1.0);
+    }
+  }

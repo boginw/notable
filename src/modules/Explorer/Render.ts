@@ -9,7 +9,7 @@ import {
 import FileNode from './FileNode';
 import HoverEngine from './HoverEngine';
 import Events from '../Events/Events';
-
+import folderContext from './ContextMenu';
 
 export default class Render {
 
@@ -62,6 +62,12 @@ export default class Render {
 			newRoot.appendChild(files[i].node);
 		}
 
+		newRoot.addEventListener('contextmenu', (ev: PointerEvent) => {
+			if (ev.srcElement == newRoot) {
+				Menu.buildFromTemplate(folderContext).popup(remote.getCurrentWindow());
+			}
+		}, true);
+
 		return newRoot;
 	}
 
@@ -84,26 +90,7 @@ export default class Render {
 	public static emptyContextMenu(base: HTMLElement, strict: boolean = true) {
 		base.addEventListener('contextmenu', (ev: PointerEvent) => {
 			if (ev.srcElement == base || !strict) {
-				Menu.buildFromTemplate([
-					{
-						label: 'New Note',
-						role: 'new',
-						click: () => {
-							Events.trigger('file.newFile');
-						},
-					}, {
-						label: 'New Folder',
-						role: 'newFolder',
-						click: () => {
-							Events.trigger('file.newFolder');
-						},
-					}, {
-						type: 'separator',
-					}, {
-						label: 'Folder Properties',
-						role: 'propFolder',
-					}
-				]).popup(remote.getCurrentWindow());
+				Menu.buildFromTemplate(folderContext).popup(remote.getCurrentWindow());
 			}
 		}, true);
 	}

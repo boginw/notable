@@ -3,6 +3,7 @@ import {
 } from '../../interfaces';
 
 import IIOWatcher from './IIOWatcher';
+import { Stats } from 'fs';
 
 export default interface IIO {
 	/**
@@ -11,7 +12,7 @@ export default interface IIO {
 	 * @return {Promise<string>} File contents
 	 */
 	openFile(fileName: string): Promise<string>;
-
+	
 	/**
 	 * Saves contents to file
 	 * @param {string} path Path to file
@@ -84,14 +85,14 @@ export default interface IIO {
 	 * @param {string} filePath Path to file
 	 * @return {Promise<any>} File stats
 	 */
-	fileStats(filePath: string): Promise<any>;
+	fileStats(filePath: string): Promise<Stats>;
 
 	/**
      * Creates notable file object from path
      * @param {string} filePath Path to the file to be created
 	 * @returns {Promise<NotableFile>} Notable file from promise
      */
-	fileFromPath(filePath: string, stats?: any): Promise<NotableFile>;
+	fileFromPath(filePath: string, stats?: Stats): Promise<NotableFile>;
 
 	/**
 	 * Gets all files in a specific directory
@@ -99,6 +100,5 @@ export default interface IIO {
 	 * @param acceptedfiles Filter files
 	 * @returns {Promise<NotableFile[]>} Array with notable files
 	 */
-	filesInDirectory(dirPath: string): Promise<NotableFile[]>;
 	filesInDirectory(dirPath: string, acceptedfiles?: string[]): Promise<NotableFile[]>;
 }

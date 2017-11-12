@@ -8,6 +8,7 @@ import {
 } from '../../interfaces';
 import TimeAgo from '../../helpers/timeago';
 import Events from '../Events/Events';
+import fileContext from './ContextMenu';
 
 export default class FileNode {
 	public node: HTMLLIElement;
@@ -101,7 +102,7 @@ export default class FileNode {
 		if (this.node) {
 			try {
 				this.node.remove();
-			} catch (ignore) {}
+			} catch (ignore) { }
 		}
 	}
 
@@ -183,66 +184,27 @@ export default class FileNode {
 	 * Handle rightclick context menus
 	 */
 	private rightclick(): any {
-		if (this.file.stat.isDirectory()) {
-			Menu.buildFromTemplate([
-				{
-					label: 'Rename',
-					role: 'rename',
-					click: this.renameFile(),
-				}, {
-					label: 'Delete Folder',
-					role: 'delFolder',
-					click: () => {
-						Events.trigger('file.delete', this);
-					},
-				}, {
-					type: 'separator',
-				}, {
-					label: 'New Folder',
-					role: 'newFolder',
-					click: () => {
-						Events.trigger('file.newFolder');
-					},
-				}, {
-					label: 'New Note',
-					role: 'new',
-					click: () => {
-						Events.trigger('file.newFile');
-					},
-				}, {
-					type: 'separator',
-				}, {
-					label: 'Folder Properties',
-					role: 'propFolder',
-				}
-			]).popup(remote.getCurrentWindow());
-		} else {
-			Menu.buildFromTemplate([
-				{
-					label: 'Rename',
-					role: 'rename',
-					click: this.renameFile(),
-				}, {
-					label: 'Delete',
-					role: 'deleteFile',
-					click: () => {
-						Events.trigger('file.delete', this);
-					},
-				}, {
-					type: 'separator',
-				}, {
-					label: 'New Folder',
-					role: 'newFolder',
-					click: () => {
-						Events.trigger('file.newFolder');
-					},
-				}, {
-					label: 'New Note',
-					role: 'new',
-					click: () => {
-						Events.trigger('file.newFile');
-					},
-				}, {
+		let context: any[] = [
+			{
+				label: 'Rename',
+				role: 'rename',
+				click: this.renameFile(),
+			}, {
+				label: 'Delete Folder',
+				role: 'delFolder',
+				click: () => {
+					Events.trigger('file.delete', this);
+				},
+			}, {
+				type: 'separator',
+			}
+		];
+
+		context = context.concat(fileContext);
+
+		if (!this.file.stat.isDirectory()) {
+			context = context.concat(
+				[{
 					type: 'separator',
 				}, {
 					label: 'Open Containing Folder',
@@ -250,9 +212,11 @@ export default class FileNode {
 					click: () => {
 						shell.showItemInFolder(this.file.name);
 					}
-				}
-			]).popup(remote.getCurrentWindow());
+				}]
+			);
 		}
+
+		Menu.buildFromTemplate(context).popup(remote.getCurrentWindow());
 	}
 
 	/**

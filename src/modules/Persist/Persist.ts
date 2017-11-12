@@ -12,9 +12,9 @@ export default class Persist {
 		let stateStoreFile = 'window-state-' + key + '.json';
 		let fullPath = path.join(userData, stateStoreFile);
 		
-		if (fs.exists(fullPath)) {
+		if (fs.existsSync(fullPath)) {
 			try {
-				return JSON.parse(fs.openSync(fullPath));
+				return JSON.parse(fs.readFileSync(fullPath));
 			} catch (err) {
 				return {};
 			}
@@ -32,6 +32,21 @@ export default class Persist {
 		}
 
 		this.io.saveFile(fullPath, JSON.stringify(value)).then(() => {
+			if (callback != undefined) {
+				callback();
+			}
+		});
+	}
+
+	public static delete(key: string, value: object, callback?: () => any): void {
+		let stateStoreFile = 'window-state-' + key + '.json';
+		let fullPath = path.join(userData, stateStoreFile);
+
+		if(this.io == undefined){
+			this.io = new IO();
+		}
+
+		this.io.deleteFile(fullPath).then(() => {
 			if (callback != undefined) {
 				callback();
 			}

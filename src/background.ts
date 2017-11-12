@@ -5,9 +5,7 @@
 
 import * as path from 'path';
 import * as url from 'url';
-const { app, Menu } = require('electron'); // native electron module
-import { devMenuTemplate } from './menu/dev_menu_template';
-import { editMenuTemplate } from './menu/edit_menu_template';
+const { app, Menu, ipcMain } = require('electron'); // native electron module
 import createWindow from './helpers/window';
 
 // Special module holding environment variables which you declared
@@ -24,7 +22,7 @@ if (env.name !== 'production' && app) {
 	app.setPath('userData', userDataPath + ' (' + env.name + ')');
 }
 
-app.on('ready', function () {
+app.on('ready', () => {
 
 	let mainWindow = createWindow('main', {
 		width: 1000,
@@ -44,6 +42,6 @@ app.on('ready', function () {
 	}
 });
 
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
 	app.quit();
 });

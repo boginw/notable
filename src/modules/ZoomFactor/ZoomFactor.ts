@@ -20,7 +20,7 @@ export default class ZoomFactor {
 				let scaling: number = Number.parseFloat(String(scalingArray));
 				webFrame.setZoomFactor(scaling);
 				// Let the user know that the view has scaled
-				console.log(`You're running Linux (${distro[1]}) \
+				console.warn(`You're running Linux (${distro[1]}) \
                             with text-scaling-factor set to ${scaling}\
                             So we've scaled the Window to the same scaling.`);
 			}

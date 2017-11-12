@@ -2,7 +2,7 @@ import Events from '../Events/Events';
 
 export class Modal {
 	protected modal: HTMLDivElement;
-	private clickOutsideClose: boolean = true;
+	public clickOutsideClose: boolean = true;
 
 	/**
 	 * Default constructor

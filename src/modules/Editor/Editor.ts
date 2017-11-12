@@ -3,6 +3,7 @@ const SimpleMDE = require('simplemde');
 const fs = require('fs');
 const { remote } = require('electron');
 const { clipboard } = remote;
+const { Menu, MenuItem, shell } = remote;
 
 import {
 	SimpleMDE,
@@ -10,14 +11,15 @@ import {
 } from '../../interfaces';
 import Toolbar from './Toolbar';
 import Events from '../Events/Events';
-
+import IEditorPlugin from '../../PlugMan/IEditorPlugin';
+import editMenuTemplate from '../../menu/edit_menu_template';
 
 export default class Editor {
 	private md: SimpleMDE;
 	private savedUnsaved: HTMLSpanElement;
 	private supressChange: boolean = false;
 	private openedFileNode: HTMLSpanElement;
-	private modules: EditorModule[];
+	private plugins: IEditorPlugin[];
 	private base: HTMLDivElement;
 	private startingPath: string;
 	private imageHolder: HTMLDivElement;
@@ -39,6 +41,10 @@ export default class Editor {
 		}
 	}
 
+	/**
+	 * Default constructor
+	 * @param startingPath The root of the notes folder
+	 */
 	constructor(startingPath: string) {
 		this.startingPath = startingPath;
 
@@ -74,9 +80,35 @@ export default class Editor {
 		this.codeMirrorEvents();
 
 		// Load modules
-		this.modules = this.loadModules(__dirname);
+		this.setRender();
 	}
 
+	/**
+	 * Add an icon to the toolbar
+	 * @param toAdd The icon to add (See SimpleMDE documentation)
+	 */
+	public addToToolbar(toAdd){
+		let currentToolbar = document.querySelector('.editor-toolbar');
+		if(currentToolbar){
+			currentToolbar.outerHTML = '';
+		}
+		this.md.toolbar.push(toAdd);
+		this.md.createToolbar();
+	}
+
+	/**
+	 * Subcribe to preview rendering
+	 * @param plugin Plugin that wishes to subscribe
+	 */
+	public addToPreviewRender(plugin:IEditorPlugin){
+		this.plugins.push(plugin);
+	}
+
+	/**
+	 * Change the contents of the editor
+	 * @param filename Filename of the file opened
+	 * @param contents Conents of the file opened
+	 */
 	public openFile(filename: string, contents: string) {
 		this.openedFile = filename;
 		
@@ -104,11 +136,19 @@ export default class Editor {
 		this.md.codemirror.clearHistory();
 	}
 
+	/**
+	 * Notify the editor that the current file is deleted
+	 */
 	public deletedFile() {
 		this.openedFile = "";
 		this.saved = false;
 	}
 
+	/**
+	 * Set or get the value of the editor
+	 * @param newContents New contents of the editor
+	 * @returns {string} the editors current value
+	 */
 	public value(newContents: string): void;
 	public value(): string;
 	public value(newContents?: string) {
@@ -151,51 +191,28 @@ export default class Editor {
 		};
 		this.md.codemirror.setOption('extraKeys',extraKeys);
 
+		(<HTMLDivElement> this.md.codemirror.display.wrapper).oncontextmenu = () => {
+			Menu.buildFromTemplate(editMenuTemplate).popup(remote.getCurrentWindow());
+		};
 	}
-
 
 	/**
 	 * Loads all editorial modules into an array
-	 * @param pathToThis path to the root app folder
-	 * @param md 		 SimpleMDE instance to add preview
-	 * 					 render.
 	 * @return array of EditorModule modules
 	 */
-	private loadModules(pathToThis: string): EditorModule[] {
-		// Get the path to the modules/editor folder	
-		let editorModulesFolder: string = path.join(pathToThis, "modules/editor");
-		// TODO: use IO instead of fs
-		// Get all folders in modules/editor
-		let folders: string[] = fs.readdirSync(editorModulesFolder)
-			.filter((file: any) => fs.statSync(
-				path.join(editorModulesFolder, file)).isDirectory());
-
-		let modules: EditorModule[] = [];
-
-		for (let i: number = 0; i < folders.length; i++) {
-			// Get path to main js file
-			let pathToModule: string = path.join(
-				editorModulesFolder, folders[i], folders[i] + ".js");
-
-			// Instantiate and store module 
-			let mod: any = require(pathToModule)(document, this.md);
-			modules.push(mod);
-		}
-
+	private setRender(): void {
+		this.plugins = [];
 		// Overwrite previewRender
 		this.md.options.previewRender = (plaintext: string): string => {
-			// Directory placeholder
 
-			for (let i: number = 0; i < modules.length; i++) {
-				// All modules have a preview function, to render
+			for (let i: number = 0; i < this.plugins.length; i++) {
+				// All plugins have a preview function, to render
 				// their their function to the preview view.
-				plaintext = modules[i].preview(plaintext);
+				plaintext = this.plugins[i].preview(plaintext);
 			}
 
 			// Parse the rest through markdown
 			return this.md.markdown(plaintext);
 		};
-
-		return modules;
 	}
 }

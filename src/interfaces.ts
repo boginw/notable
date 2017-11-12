@@ -10,6 +10,7 @@ export interface CodeMirror {
 	options: {
 		extraKeys: any;
 	};
+	display:any;
 	clearHistory: () => void;
 	getDoc: () => any;
 	getCursor: () => {line:number, ch:number, sticky:any};
@@ -32,6 +33,7 @@ export interface SimpleMDE {
 	togglePreview(): void;
 	isFullscreenActive(): boolean;
 	toggleFullScreen(): void;
+	createToolbar():void;
 }
 
 export interface NotableFile {
@@ -41,13 +43,6 @@ export interface NotableFile {
 	open: boolean;
 	childrens: number;
 	preview: string;
-}
-
-
-export interface NoteBook {
-	name: string;
-	color: string;
-	background: string;
 }
 
 export interface ExplorerContexts {

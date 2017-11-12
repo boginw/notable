@@ -4,12 +4,12 @@ const path = require('path');
 
 import {
 	NotableFile,
-	ExplorerContexts,
-	NoteBook
+	ExplorerContexts
 } from '../../interfaces';
 import TimeAgo from '../../helpers/timeago';
 import Events from '../Events/Events';
 import IO from '../IO/IO';
+import IOHandler from '../IO/IOHandler';
 import IIO from '../IO/IIO';
 import Persist from '../Persist/Persist';
 
@@ -38,15 +38,13 @@ export default class Explorer {
 	 *                             should start 
 	 */
 	constructor(defaultPath: string) {
-		this.io = new IO();
+		this.io = new IOHandler();
 		this.defaultPath = defaultPath;
 		// Find our base for files and folders
 		this.base = <HTMLDivElement>document.querySelector('.folders_and_files');
 
 		// Ensure that the default path exists
-		let ensurement = this.io.ensureFolderExists(defaultPath);
-
-		ensurement.then(()=>{
+		this.io.ensureFolderExists(defaultPath).then(()=>{
 			let settings: any = Persist.load('explorer');
 			this.navigator = new Navigator(this.defaultPath, (dir)=>{
 				this.closeDirectory(dir);
@@ -78,9 +76,7 @@ export default class Explorer {
 	
 			// Maybe activate this again later
 			this.openDirectory(defaultPath);
-		});
-
-		ensurement.catch(()=>{
+		}).catch(()=>{
 			throw "Could not ensure that " + defaultPath + " exists...";
 		});
 	}
@@ -313,11 +309,11 @@ export default class Explorer {
 
 	// TODO: merge with closeDirectory
 	private openDirectory(dirPath: string): void {
-		this.io.filesInDirectory(dirPath).then((files:NotableFile[])=>{
-			for(let i = 0; i < files.length; i++){
-				this.fileTree.push(this.createFileNode(files[i]));
-			}
-		
+		let knowsFolder:boolean = this.fileTree.find((val,i,a):boolean => {
+			return val.file.name.startsWith(dirPath + path.sep);
+		}) != undefined;
+
+		let animateIn = () => {
 			// Scan the new folder
 			this.fileNodes = this.fileTree.filter((fileNode: FileNode): boolean => {
 				return path.dirname(fileNode.file.name) == dirPath;
@@ -357,7 +353,21 @@ export default class Explorer {
 	
 			this.root = newRoot;
 			this.currentPath = dirPath;
-		});
+		};
+
+		if(!knowsFolder){
+			this.io.filesInDirectory(dirPath).then((files:NotableFile[])=>{
+				// Push the newly gotten files
+				this.fileTree.push(...files.map((val,i,a)=>{
+					return this.createFileNode(val);
+				}));
+
+				animateIn();
+			});
+		} else {
+			animateIn();
+		}
+
 	}
 
 	private closeDirectory(dirPath: string): void {
@@ -435,14 +445,7 @@ export default class Explorer {
 		// Alphabetical sort
 		let aName: string = path.basename(a.file.name);
 		let bName: string = path.basename(b.file.name);
-		if (aName < bName) {
-			return -1;
-		}
-		if (aName > bName) {
-			return 1;
-		}
-		return 0;
-	}
-
-	
+		let collator:Intl.Collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'accent'});
+		return collator.compare(aName, bName);
+	}	
 }

@@ -1,6 +1,5 @@
 const SimpleMDE = require('simplemde');
 
-
 export default [
 	{
 		name: "bold",
@@ -119,11 +118,11 @@ export default [
 		className: "material-icons large redo no-disable",
 		title: "Redo"
 	},*/
-	"|",
+	/*"|",
 	{
 		name: "print",
 		action: () => { alert("Not ready yet..."); },
 		className: "material-icons large print",
 		title: "Print"
-	}
+	}*/
 ];
