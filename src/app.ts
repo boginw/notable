@@ -25,6 +25,7 @@ import {
 } from './interfaces';
 import ISyncPlugin from './PlugMan/ISyncPlugin';
 import SyncPrompt from './modules/Sync/SyncPrompt';
+import IEditorPlugin from './PlugMan/IEditorPlugin';
 
 namespace Notable {
 
@@ -64,6 +65,8 @@ namespace Notable {
 						let syncPlugin = plugin as ISyncPlugin;
 						syncPlugin.login();
 						Events.trigger("IOHandler.AddIO", syncPlugin);						
+					} else {
+						this.editor.addToPreviewRender(plugin as IEditorPlugin);
 					}
 				});
 

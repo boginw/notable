@@ -80,7 +80,7 @@
     "tslint": "^5.4.3"
   },
   "plugins": {
-    "notable-editor-katex": "^0.0.2",
+    "notable-editor-katex": "^0.0.3",
     "notable-editor-images": "^0.0.1"
   }
 }
