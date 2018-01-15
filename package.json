@@ -41,14 +41,14 @@
     "npm": "^5.0.3",
     "npm-run": "^4.1.2",
     "plus.merge-text": "0.0.3",
+    "run-sequence": "^2.2.1",
     "simplemde": "^1.11.2",
     "superagent": "^3.5.2",
-    "typescript": "^2.2.1"
+    "typescript": "^2.6.2"
   },
   "devDependencies": {
-    "webdriverio": "^4.8.0",
-    "@types/codemirror": "0.0.40",
     "@types/chai": "^4.0.1",
+    "@types/codemirror": "0.0.40",
     "@types/electron": "^1.4.33",
     "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.7",
@@ -71,13 +71,14 @@
     "istanbul": "^0.4.3",
     "minimist": "^1.2.0",
     "mocha": "^3.4.2",
-    "png-to-ico": "^1.0.2",
+    "png-to-ico": "^1.0.6",
     "rollup": "^0.36.3",
     "rollup-plugin-istanbul": "^1.1.0",
     "source-map-support": "^0.4.2",
     "spectron": "^3.3.0",
     "ts-node": "^3.1.0",
-    "tslint": "^5.4.3"
+    "tslint": "^5.4.3",
+    "webdriverio": "^4.8.0"
   },
   "plugins": {
     "notable-editor-katex": "^0.0.3",
