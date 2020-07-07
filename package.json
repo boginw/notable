@@ -54,7 +54,7 @@
     "@types/node": "^7.0.7",
     "chai": "^3.5.0",
     "chai-as-promised": "^7.0.0",
-    "electron": "^1.6.16",
+    "electron": "^7.2.4",
     "electron-builder": "^8.6.0",
     "electron-mocha": "^3.0.0",
     "electron-packager": "^8.5.1",
